@@ -3,6 +3,7 @@ package com.mustafafaraz.locateme
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +33,7 @@ class Home : AppCompatActivity() {
         initializeTabs()
         initializeCategoryChips()
         setupBottomNavigation()
+        setupItemClickListeners()
     }
 
     private fun initializeTabs() {
@@ -151,6 +153,38 @@ class Home : AppCompatActivity() {
         // Profile navigation
         findViewById<View>(R.id.nav_profile).setOnClickListener {
             // TODO: Navigate to profile page when created
+        }
+    }
+
+    private fun setupItemClickListeners() {
+        // Item 1: FOUND item - Dark Chocolate Cake
+        findViewById<LinearLayout>(R.id.item_1_found).setOnClickListener {
+            val intent = Intent(this, ItemDetails::class.java).apply {
+                putExtra("item_title", "Dark Chocolate Cake")
+                putExtra("item_description", "Found a chocolate cake in the library. Contact me asap.")
+                putExtra("item_badge", "FOUND")
+                putExtra("location", "Library - 3rd floor")
+                putExtra("time", "1 hour ago")
+                putExtra("person_name", "Abigail")
+                putExtra("contact_email", "abigail@example.com")
+                putExtra("contact_phone", "+1234567890")
+            }
+            startActivity(intent)
+        }
+
+        // Item 2: LOST item - Dark Chocolate Cake
+        findViewById<LinearLayout>(R.id.item_2_lost).setOnClickListener {
+            val intent = Intent(this, ItemDetails::class.java).apply {
+                putExtra("item_title", "Dark Chocolate Cake")
+                putExtra("item_description", "Lost my cake in the library. Please find it.")
+                putExtra("item_badge", "LOST")
+                putExtra("location", "Library - 3rd floor")
+                putExtra("time", "2 hours ago")
+                putExtra("person_name", "John A")
+                putExtra("contact_email", "john@example.com")
+                putExtra("contact_phone", "+1987654321")
+            }
+            startActivity(intent)
         }
     }
 }
