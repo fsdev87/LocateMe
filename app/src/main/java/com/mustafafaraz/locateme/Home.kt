@@ -152,7 +152,8 @@ class Home : AppCompatActivity() {
 
         // Profile navigation
         findViewById<View>(R.id.nav_profile).setOnClickListener {
-            // TODO: Navigate to profile page when created
+            val intent = Intent(this, Profile::class.java)
+            startActivity(intent)
         }
     }
 
