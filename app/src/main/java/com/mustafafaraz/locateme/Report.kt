@@ -23,8 +23,6 @@ class Report : AppCompatActivity() {
     private lateinit var itemCategory: Spinner
     private lateinit var itemDescription: EditText
     private lateinit var itemLocation: EditText
-    private lateinit var contactMethod: EditText
-    private lateinit var contactInfo: EditText
 
     private var isLostItem = true
 
@@ -48,8 +46,6 @@ class Report : AppCompatActivity() {
         itemCategory = findViewById(R.id.item_category)
         itemDescription = findViewById(R.id.item_description)
         itemLocation = findViewById(R.id.item_location)
-        contactMethod = findViewById(R.id.contact_method)
-        contactInfo = findViewById(R.id.contact_info)
     }
 
     private fun setupToggleListeners() {
@@ -151,8 +147,6 @@ class Report : AppCompatActivity() {
         val category = itemCategory.selectedItem.toString()
         val description = itemDescription.text.toString()
         val location = itemLocation.text.toString()
-        val method = contactMethod.text.toString()
-        val contact = contactInfo.text.toString()
 
         // Validation
         if (title.isEmpty()) {
@@ -172,16 +166,6 @@ class Report : AppCompatActivity() {
 
         if (location.isEmpty()) {
             itemLocation.error = "Please enter location"
-            return
-        }
-
-        if (method.isEmpty()) {
-            contactMethod.error = "Please enter contact method"
-            return
-        }
-
-        if (contact.isEmpty()) {
-            contactInfo.error = "Please enter contact information"
             return
         }
 
