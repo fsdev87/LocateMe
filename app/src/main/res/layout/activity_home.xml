@@ -266,6 +266,7 @@
 
             <!-- Item 1: FOUND -->
             <LinearLayout
+                android:id="@+id/item_1_found"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -411,6 +412,7 @@
 
             <!-- Item 2: LOST -->
             <LinearLayout
+                android:id="@+id/item_2_lost"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
