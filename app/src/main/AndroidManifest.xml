@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LocateMe">
         <activity
+            android:name=".MyItems"
+            android:exported="false" />
+        <activity
             android:name=".ItemDetails"
             android:exported="false" />
         <activity
