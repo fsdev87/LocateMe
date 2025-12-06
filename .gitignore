@@ -80,4 +80,6 @@ out/
 # Backend files
 backend/node_modules/
 backend/.env
-backend/uploads/
+# Uploads - ignore contents but keep folder structure
+backend/uploads/**/*
+backend/!uploads/**/.gitkeep
