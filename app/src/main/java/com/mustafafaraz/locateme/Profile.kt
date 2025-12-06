@@ -2,6 +2,7 @@ package com.mustafafaraz.locateme
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,20 @@ class Profile : AppCompatActivity() {
         val navsearchbtn = findViewById<LinearLayout>(R.id.nav_search)
         val navreportbtn = findViewById<LinearLayout>(R.id.nav_report)
         val navprofilebtn = findViewById<LinearLayout>(R.id.nav_profile)
+        val quickmyitems = findViewById<LinearLayout>(R.id.quick_myitems)
+        val editProfile = findViewById<ImageView>(R.id.edit_profile_button)
+
+        editProfile.setOnClickListener {
+            val intent = Intent(this, EditProfile::class.java)
+            startActivity(intent)
+        }
+
+
+        quickmyitems.setOnClickListener {
+            val intent = Intent(this, MyItems::class.java)
+            startActivity(intent)
+        }
+
 
         quicksaved.setOnClickListener {
             val intent = Intent(this, SavedItems::class.java)

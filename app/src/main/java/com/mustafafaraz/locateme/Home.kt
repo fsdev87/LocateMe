@@ -155,6 +155,11 @@ class Home : AppCompatActivity() {
             val intent = Intent(this, Profile::class.java)
             startActivity(intent)
         }
+
+        findViewById<View>(R.id.chat_icon).setOnClickListener {
+            val intent = Intent(this, ChatScreen::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun setupItemClickListeners() {

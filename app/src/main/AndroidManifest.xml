@@ -26,6 +26,18 @@
         </service>
 
         <activity
+            android:name=".EditItem"
+            android:exported="false" />
+        <activity
+            android:name=".EditProfile"
+            android:exported="false" />
+        <activity
+            android:name=".MyItems"
+            android:exported="false" />
+        <activity
+            android:name=".ChatScreen"
+            android:exported="false" />
+        <activity
             android:name=".ItemDetails"
             android:exported="false" />
         <activity
