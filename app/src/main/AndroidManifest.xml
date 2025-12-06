@@ -15,6 +15,9 @@
             android:name=".MyItems"
             android:exported="false" />
         <activity
+            android:name=".ChatScreen"
+            android:exported="false" />
+        <activity
             android:name=".ItemDetails"
             android:exported="false" />
         <activity
