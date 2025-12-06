@@ -1,4 +1,4 @@
-package com.mustafafaraz.locateme.data.models
+package com.mustafafaraz.locateme.data.model
 
 data class Item(
     val id: Int,

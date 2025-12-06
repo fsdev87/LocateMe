@@ -8,27 +8,33 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // IMPORTANT: Change this to your Render URL after deployment
-    private const val BASE_URL = "https://your-app-name.onrender.com/"
+    // Your deployed backend URL
+    private const val BASE_URL = "https://locateme-backend.onrender.com/"
 
+    // Logging interceptor to see API requests/responses in Logcat
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    // OkHttp client with timeout settings
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS)  // Longer timeout for Render cold starts
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    val instance: ApiService by lazy {
-        val retrofit = Retrofit.Builder()
+    // Retrofit instance
+    private val retrofit by lazy {
+        Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
 
+    // API Service instance
+    val apiService: ApiService by lazy {
         retrofit.create(ApiService::class.java)
     }
 }

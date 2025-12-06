@@ -6,8 +6,15 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.mustafafaraz.locateme.data.api.RetrofitClient
+import com.mustafafaraz.locateme.data.model.LoginRequest
+import com.mustafafaraz.locateme.data.model.SignupRequest
+import com.mustafafaraz.locateme.utils.TokenManager
+import kotlinx.coroutines.launch
 
 class LoginSignup : AppCompatActivity() {
 
@@ -35,10 +42,14 @@ class LoginSignup : AppCompatActivity() {
     private lateinit var section: EditText
 
     private var isLoginMode = true
+    private lateinit var tokenManager: TokenManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_signup)
+
+        // Initialize TokenManager
+        tokenManager = TokenManager(this)
 
         initializeViews()
         setupToggleListeners()
@@ -150,31 +161,192 @@ class LoginSignup : AppCompatActivity() {
     }
 
     private fun handleLogin() {
-        val email = username.text.toString()
-        val pass = password.text.toString()
+        val email = username.text.toString().trim()
+        val pass = password.text.toString().trim()
 
-        // TODO: Add validation and authentication logic
+        // Validation
+        if (email.isEmpty()) {
+            username.error = "Email is required"
+            username.requestFocus()
+            return
+        }
 
-        // Navigate to Home page
-        val intent = Intent(this, Home::class.java)
-        startActivity(intent)
-        finish() // Close login screen so user can't go back to it
+        if (pass.isEmpty()) {
+            password.error = "Password is required"
+            password.requestFocus()
+            return
+        }
+
+        // Disable button and show loading
+        actionButton.isEnabled = false
+        actionButton.text = "Logging in..."
+
+        // Make API call
+        lifecycleScope.launch {
+            try {
+                val request = LoginRequest(email, pass)
+                val response = RetrofitClient.apiService.login(request)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val authData = response.body()?.data
+
+                    if (authData != null) {
+                        // Save token and user data
+                        tokenManager.saveAuthData(
+                            token = authData.token,
+                            userId = authData.user.id.toString(),
+                            userName = authData.user.full_name,
+                            userEmail = authData.user.email
+                        )
+
+                        Toast.makeText(
+                            this@LoginSignup,
+                            "Login successful! Welcome ${authData.user.full_name}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Navigate to Home
+                        navigateToHome()
+                    }
+                } else {
+                    val errorMsg = response.body()?.message ?: "Login failed. Please check your credentials."
+                    Toast.makeText(this@LoginSignup, errorMsg, Toast.LENGTH_LONG).show()
+
+                    // Re-enable button
+                    actionButton.isEnabled = true
+                    actionButton.text = "Login"
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@LoginSignup,
+                    "Network error: ${e.message}. Please check your connection.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                // Re-enable button
+                actionButton.isEnabled = true
+                actionButton.text = "Login"
+            }
+        }
     }
 
     private fun handleSignup() {
-        val name = fullName.text.toString()
-        val email = username.text.toString()
-        val studId = studentId.text.toString()
-        val batchVal = batch.text.toString()
-        val dept = department.text.toString()
-        val sect = section.text.toString()
-        val pass = password.text.toString()
+        val name = fullName.text.toString().trim()
+        val email = username.text.toString().trim()
+        val studId = studentId.text.toString().trim()
+        val batchVal = batch.text.toString().trim()
+        val dept = department.text.toString().trim()
+        val sect = section.text.toString().trim()
+        val pass = password.text.toString().trim()
 
-        // TODO: Add validation and signup logic
+        // Validation
+        if (name.isEmpty()) {
+            fullName.error = "Full name is required"
+            fullName.requestFocus()
+            return
+        }
 
-        // Navigate to Home page after successful signup
+        if (email.isEmpty()) {
+            username.error = "Email is required"
+            username.requestFocus()
+            return
+        }
+
+        if (studId.isEmpty()) {
+            studentId.error = "Student ID is required"
+            studentId.requestFocus()
+            return
+        }
+
+        if (batchVal.isEmpty()) {
+            batch.error = "Batch is required"
+            batch.requestFocus()
+            return
+        }
+
+        if (dept.isEmpty()) {
+            department.error = "Department is required"
+            department.requestFocus()
+            return
+        }
+
+        if (sect.isEmpty()) {
+            section.error = "Section is required"
+            section.requestFocus()
+            return
+        }
+
+        if (pass.isEmpty() || pass.length < 6) {
+            password.error = "Password must be at least 6 characters"
+            password.requestFocus()
+            return
+        }
+
+        // Disable button and show loading
+        actionButton.isEnabled = false
+        actionButton.text = "Creating account..."
+
+        // Make API call
+        lifecycleScope.launch {
+            try {
+                val request = SignupRequest(
+                    fullName = name,
+                    email = email,
+                    password = pass,
+                    studentId = studId,
+                    batch = batchVal,
+                    department = dept,
+                    section = sect
+                )
+
+                val response = RetrofitClient.apiService.signup(request)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val authData = response.body()?.data
+
+                    if (authData != null) {
+                        // Save token and user data
+                        tokenManager.saveAuthData(
+                            token = authData.token,
+                            userId = authData.user.id.toString(),
+                            userName = authData.user.full_name,
+                            userEmail = authData.user.email
+                        )
+
+                        Toast.makeText(
+                            this@LoginSignup,
+                            "Account created successfully! Welcome ${authData.user.full_name}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Navigate to Home
+                        navigateToHome()
+                    }
+                } else {
+                    val errorMsg = response.body()?.message ?: "Signup failed. Please try again."
+                    Toast.makeText(this@LoginSignup, errorMsg, Toast.LENGTH_LONG).show()
+
+                    // Re-enable button
+                    actionButton.isEnabled = true
+                    actionButton.text = "Create Account"
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@LoginSignup,
+                    "Network error: ${e.message}. Please check your connection.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                // Re-enable button
+                actionButton.isEnabled = true
+                actionButton.text = "Create Account"
+            }
+        }
+    }
+
+    private fun navigateToHome() {
         val intent = Intent(this, Home::class.java)
         startActivity(intent)
-        finish() // Close login screen so user can't go back to it
+        finish() // Close login screen so user can't go back
     }
 }

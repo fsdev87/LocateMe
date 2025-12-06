@@ -1,6 +1,6 @@
 package com.mustafafaraz.locateme.data.api
 
-import com.mustafafaraz.locateme.data.models.*
+import com.mustafafaraz.locateme.data.model.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
