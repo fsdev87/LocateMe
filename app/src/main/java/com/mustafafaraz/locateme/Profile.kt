@@ -28,12 +28,10 @@ class Profile : AppCompatActivity() {
             startActivity(intent)
         }
 
-
         quickmyitems.setOnClickListener {
             val intent = Intent(this, MyItems::class.java)
             startActivity(intent)
         }
-
 
         quicksaved.setOnClickListener {
             val intent = Intent(this, SavedItems::class.java)
@@ -65,7 +63,6 @@ class Profile : AppCompatActivity() {
         navreportbtn.setOnClickListener {
             val intent = Intent(this, Report::class.java)
             startActivity(intent)
-            finish()
         }
 
         navprofilebtn.setOnClickListener {

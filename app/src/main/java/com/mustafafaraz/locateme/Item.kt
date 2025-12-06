@@ -1,7 +1,7 @@
 package com.mustafafaraz.locateme
 
 data class Item(
-    val id: Int,
+    val id: String,
     val title: String,
     val description: String,
     val type: String, // "FOUND" or "LOST"

@@ -154,6 +154,7 @@ class Home : AppCompatActivity() {
         findViewById<View>(R.id.nav_profile).setOnClickListener {
             val intent = Intent(this, Profile::class.java)
             startActivity(intent)
+            finish()
         }
 
         findViewById<View>(R.id.chat_icon).setOnClickListener {

@@ -349,41 +349,33 @@
 
             </LinearLayout>
 
-            <!-- Sign Out Button -->
-            <LinearLayout
-                android:id="@+id/sign_out_button"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:background="@drawable/signout_button_background"
-                android:gravity="center"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp">
-
-                <!--<ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/logout_icon"
-                    app:tint="@color/white"
-                    android:contentDescription="Sign Out"
-                    android:layout_marginEnd="12dp"/>-->
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Sign Out"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
         </LinearLayout>
 
     </ScrollView>
+
+    <!-- Sign Out Button -->
+    <LinearLayout
+        android:id="@+id/sign_out_button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:background="@drawable/signout_button_background"
+        android:gravity="center"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Out"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+
+    </LinearLayout>
 
     <!-- Bottom Navigation -->
     <LinearLayout
