@@ -18,7 +18,7 @@ class MyItems : AppCompatActivity() {
     private lateinit var adapter: MyItemsAdapter
 
     private var currentTab = "active" // Track current tab
-    private lateinit var allItems: MutableList<MyItem>
+    private lateinit var allItems: MutableList<Item>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,11 +43,11 @@ class MyItems : AppCompatActivity() {
 
         // Initialize all items with sample data
         allItems = mutableListOf(
-            MyItem("1", "Dark Chocolate Cake", "Found a chocolate cake in the library. Contact me asap.", "LOST", "Library - 3rd floor", "2 hours ago", "active"),
-            MyItem("2", "Blue Backpack", "Lost my blue backpack with important documents.", "LOST", "Student Center", "1 hour ago", "active"),
-            MyItem("3", "Silver Headphones", "Found silver headphones near the cafeteria.", "FOUND", "Cafeteria", "30 minutes ago", "resolved"),
-            MyItem("4", "Car Keys", "Lost my car keys, very important.", "LOST", "Parking Lot", "3 hours ago", "expired"),
-            MyItem("5", "Red Wallet", "Found a red wallet with cash and ID.", "FOUND", "Library - 2nd floor", "45 minutes ago", "active")
+            Item("1", "Dark Chocolate Cake", "Found a chocolate cake in the library. Contact me asap.", "LOST", "Library - 3rd floor", "2 hours ago", "active"),
+            Item("2", "Blue Backpack", "Lost my blue backpack with important documents.", "LOST", "Student Center", "1 hour ago", "active"),
+            Item("3", "Silver Headphones", "Found silver headphones near the cafeteria.", "FOUND", "Cafeteria", "30 minutes ago", "resolved"),
+            Item("4", "Car Keys", "Lost my car keys, very important.", "LOST", "Parking Lot", "3 hours ago", "expired"),
+            Item("5", "Red Wallet", "Found a red wallet with cash and ID.", "FOUND", "Library - 2nd floor", "45 minutes ago", "active")
         )
     }
 

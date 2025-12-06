@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class MyItemsAdapter(
     private val context: Context,
-    private var items: MutableList<MyItem>
+    private var items: MutableList<Item>
 ) : RecyclerView.Adapter<MyItemsAdapter.MyItemViewHolder>() {
 
     inner class MyItemViewHolder(itemView: android.view.View) :
@@ -27,11 +27,11 @@ class MyItemsAdapter(
         private val editIcon: ImageView = itemView.findViewById(R.id.edit_icon)
         private val itemContainer: LinearLayout = itemView.findViewById(R.id.item_container)
 
-        fun bind(myItem: MyItem) {
-            itemBadge.text = myItem.badge
+        fun bind(myItem: Item) {
+            itemBadge.text = myItem.type
 
             // Set badge background color based on type
-            if (myItem.badge == "LOST") {
+            if (myItem.type == "LOST") {
                 itemBadge.setBackgroundResource(R.drawable.lost_badge)
             } else {
                 itemBadge.setBackgroundResource(R.drawable.found_badge)
@@ -40,7 +40,7 @@ class MyItemsAdapter(
             itemTitle.text = myItem.title
             itemDescription.text = myItem.description
             itemLocation.text = myItem.location
-            itemTime.text = myItem.time
+            itemTime.text = myItem.createdAt
             //viewsAndResponses.text = myItem.viewsAndResponses
             statusBadge.text = myItem.status
 
@@ -49,7 +49,7 @@ class MyItemsAdapter(
                     putExtra("item_id", myItem.id)
                     putExtra("item_title", myItem.title)
                     putExtra("item_description", myItem.description)
-                    putExtra("item_badge", myItem.badge)
+                    putExtra("item_badge", myItem.type)
                     putExtra("item_location", myItem.location)
                     putExtra("item_status", myItem.status)
                 }
@@ -60,9 +60,9 @@ class MyItemsAdapter(
                 val intent = Intent(context, ItemDetails::class.java).apply {
                     putExtra("item_title", myItem.title)
                     putExtra("item_description", myItem.description)
-                    putExtra("item_badge", myItem.badge)
+                    putExtra("item_badge", myItem.type)
                     putExtra("location", myItem.location)
-                    putExtra("time", myItem.time)
+                    putExtra("time", myItem.createdAt)
                     putExtra("person_name", "You")
                 }
                 context.startActivity(intent)
@@ -88,7 +88,7 @@ class MyItemsAdapter(
 
     override fun getItemCount(): Int = items.size
 
-    fun updateItems(newItems: MutableList<MyItem>) {
+    fun updateItems(newItems: MutableList<Item>) {
         items = newItems
         notifyDataSetChanged()
     }
