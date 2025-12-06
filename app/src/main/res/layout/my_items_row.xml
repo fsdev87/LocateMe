@@ -6,7 +6,8 @@
     android:orientation="horizontal"
     android:background="@drawable/item_card_background"
     android:padding="12dp"
-    android:layout_marginBottom="12dp">
+    android:layout_marginBottom="12dp"
+    android:id="@+id/item_container">
 
     <!-- Item Image -->
     <ImageView
@@ -188,6 +189,7 @@
 
     <!-- Edit Icon -->
     <ImageView
+        android:id="@+id/edit_icon"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:src="@drawable/ic_edit"

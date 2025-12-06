@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".EditItem">
+
+    <!-- Edit Header -->
+    <LinearLayout
+        android:id="@+id/edit_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:background="@color/white">
+
+        <!-- Back Button -->
+        <ImageView
+            android:id="@+id/back_button"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Item"
+            android:textSize="18sp"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"/>
+
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/edit_header"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Basic Information Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Basic Information"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Item Type Dropdown -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Item Type *"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <Spinner
+                        android:id="@+id/item_type_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/field_text_box"
+                        android:padding="12dp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Item Title -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Item Title *"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <EditText
+                        android:id="@+id/item_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="e.g. Dark Chocolate Cake"
+                        android:textSize="14sp"
+                        android:background="@drawable/field_text_box"
+                        android:inputType="text"
+                        android:padding="12dp"
+                        android:textColorHint="@android:color/darker_gray"
+                        android:textColor="@color/black"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Item Category -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Item Category *"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <Spinner
+                        android:id="@+id/item_category"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/field_text_box"
+                        android:padding="12dp"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Description -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Description *"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <EditText
+                        android:id="@+id/item_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:hint="Describe the item in detail..."
+                        android:textSize="14sp"
+                        android:textColorHint="@android:color/darker_gray"
+                        android:textColor="@color/black"
+                        android:background="@drawable/field_text_box"
+                        android:inputType="textMultiLine"
+                        android:gravity="top|start"
+                        android:padding="12dp"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Status Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Item Status"
+                        android:textSize="16sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Status *"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <Spinner
+                        android:id="@+id/item_status_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/field_text_box"
+                        android:padding="12dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="• Active: Item is still lost/found\n• Resolved: Item has been returned/claimed\n• Expired: Posting is no longer active"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_color"
+                        android:layout_marginTop="8dp"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Location Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_location"
+                            android:contentDescription="Location"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Location"
+                            android:textSize="16sp"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"
+                            android:paddingStart="8dp"/>
+
+                    </LinearLayout>
+
+                    <!-- Location Label -->
+                    <TextView
+                        android:id="@+id/location_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Where did you lose it? *"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <EditText
+                        android:id="@+id/item_location"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="e.g. Library - 3rd floor"
+                        android:textSize="14sp"
+                        android:background="@drawable/field_text_box"
+                        android:inputType="text"
+                        android:padding="12dp"
+                        android:textColorHint="@android:color/darker_gray"
+                        android:textColor="@color/black"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Photos Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_photo"
+                            android:contentDescription="Photos"/>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Photos"
+                            android:textSize="16sp"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"
+                            android:paddingStart="8dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2/5 Photos"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_color"/>
+
+                    </LinearLayout>
+
+                    <!-- Current Photos Display (Static) -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Current Photos:"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <!-- Static Photo Gallery -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none"
+                        android:layout_marginBottom="12dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!-- Photo 1 -->
+                            <FrameLayout
+                                android:layout_width="100dp"
+                                android:layout_height="100dp"
+                                android:layout_marginEnd="8dp">
+
+                                <ImageView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:src="@drawable/item_placeholder"
+                                    android:scaleType="centerCrop"
+                                    android:background="@drawable/item_image_background"
+                                    android:contentDescription="Photo 1"/>
+
+                                <!-- Dustbin Icon -->
+                                <ImageView
+                                    android:layout_width="28dp"
+                                    android:layout_height="28dp"
+                                    android:layout_gravity="top|end"
+                                    android:layout_margin="4dp"
+                                    android:src="@android:drawable/ic_menu_delete"
+                                    android:padding="4dp"
+                                    android:scaleType="fitCenter"
+                                    android:contentDescription="Delete Photo"/>
+
+                            </FrameLayout>
+
+                            <!-- Photo 2 -->
+                            <FrameLayout
+                                android:layout_width="100dp"
+                                android:layout_height="100dp"
+                                android:layout_marginEnd="8dp">
+
+                                <ImageView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:src="@drawable/item_placeholder"
+                                    android:scaleType="centerCrop"
+                                    android:background="@drawable/item_image_background"
+                                    android:contentDescription="Photo 2"/>
+
+                                <!-- Dustbin Icon -->
+                                <ImageView
+                                    android:layout_width="28dp"
+                                    android:layout_height="28dp"
+                                    android:layout_gravity="top|end"
+                                    android:layout_margin="4dp"
+                                    android:src="@android:drawable/ic_menu_delete"
+                                    android:padding="4dp"
+                                    android:scaleType="fitCenter"
+                                    android:contentDescription="Delete Photo"/>
+
+                            </FrameLayout>
+
+                        </LinearLayout>
+
+                    </HorizontalScrollView>
+
+                    <!-- Add Photo Button -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/search_background"
+                        android:padding="24dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/ic_upload"
+                            android:contentDescription="Upload"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Add Photo"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_color"
+                            android:layout_marginTop="8dp"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Delete Button -->
+                <Button
+                    android:id="@+id/delete_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Delete Item"
+                    android:textColor="@color/white"
+                    android:backgroundTint="#DC3545"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:padding="14dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <!-- Save Button -->
+                <Button
+                    android:id="@+id/save_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Save Changes"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/blue"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:padding="14dp"
+                    android:layout_marginStart="8dp"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</RelativeLayout>

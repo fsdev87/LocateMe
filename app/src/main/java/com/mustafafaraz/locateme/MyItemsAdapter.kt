@@ -1,8 +1,11 @@
 package com.mustafafaraz.locateme
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -21,6 +24,8 @@ class MyItemsAdapter(
         private val itemTime: TextView = itemView.findViewById(R.id.item_time)
         //private val viewsAndResponses: TextView = itemView.findViewById(R.id.views_and_responses)
         private val statusBadge: TextView = itemView.findViewById(R.id.status_badge)
+        private val editIcon: ImageView = itemView.findViewById(R.id.edit_icon)
+        private val itemContainer: LinearLayout = itemView.findViewById(R.id.item_container)
 
         fun bind(myItem: MyItem) {
             itemBadge.text = myItem.badge
@@ -38,6 +43,30 @@ class MyItemsAdapter(
             itemTime.text = myItem.time
             //viewsAndResponses.text = myItem.viewsAndResponses
             statusBadge.text = myItem.status
+
+            editIcon.setOnClickListener {
+                val intent = Intent(context, EditItem::class.java).apply {
+                    putExtra("item_id", myItem.id)
+                    putExtra("item_title", myItem.title)
+                    putExtra("item_description", myItem.description)
+                    putExtra("item_badge", myItem.badge)
+                    putExtra("item_location", myItem.location)
+                    putExtra("item_status", myItem.status)
+                }
+                context.startActivity(intent)
+            }
+
+            itemContainer.setOnClickListener {
+                val intent = Intent(context, ItemDetails::class.java).apply {
+                    putExtra("item_title", myItem.title)
+                    putExtra("item_description", myItem.description)
+                    putExtra("item_badge", myItem.badge)
+                    putExtra("location", myItem.location)
+                    putExtra("time", myItem.time)
+                    putExtra("person_name", "You")
+                }
+                context.startActivity(intent)
+            }
         }
     }
 
@@ -52,6 +81,9 @@ class MyItemsAdapter(
 
     override fun onBindViewHolder(holder: MyItemViewHolder, position: Int) {
         holder.bind(items[position])
+
+
+
     }
 
     override fun getItemCount(): Int = items.size
