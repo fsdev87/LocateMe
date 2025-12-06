@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chat_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:background="@drawable/item_card_background">
+
+    <!-- User Avatar -->
+    <ImageView
+        android:id="@+id/user_avatar"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/ic_person"
+        android:scaleType="centerInside"
+        android:background="@drawable/item_image_background"
+        android:contentDescription="User Avatar"
+        android:layout_marginEnd="12dp"/>
+
+    <!-- Chat Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <!-- User Name -->
+        <TextView
+            android:id="@+id/user_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="John Doe"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- Last Message -->
+        <TextView
+            android:id="@+id/last_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Did you find my backpack?"
+            android:textColor="@color/text_color"
+            android:textSize="12sp"
+            android:maxLines="1"
+            android:ellipsize="end"/>
+
+    </LinearLayout>
+
+    <!-- Right Side Info -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginStart="8dp">
+
+        <!-- Timestamp -->
+        <TextView
+            android:id="@+id/timestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10:30 AM"
+            android:textColor="@color/text_color"
+            android:textSize="11sp"
+            android:layout_marginBottom="6dp"/>
+
+        <!-- Unread Badge -->
+        <TextView
+            android:id="@+id/unread_badge"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:text="2"
+            android:textColor="@color/white"
+            android:background="@drawable/unread_badge_background"
+            android:gravity="center"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+</LinearLayout>
+

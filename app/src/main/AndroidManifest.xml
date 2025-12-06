@@ -35,6 +35,9 @@
             android:name=".MyItems"
             android:exported="false" />
         <activity
+            android:name=".ChatList"
+            android:exported="false" />
+        <activity
             android:name=".ChatScreen"
             android:exported="false" />
         <activity
