@@ -90,7 +90,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/field_text_box"
-                        android:padding="12dp"
                         android:layout_marginBottom="16dp"/>
 
                     <!-- Item Title -->
@@ -131,7 +130,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@drawable/field_text_box"
-                        android:padding="12dp"
                         android:layout_marginBottom="16dp"/>
 
                     <!-- Description -->
@@ -198,8 +196,7 @@
                         android:id="@+id/item_status_spinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/field_text_box"
-                        android:padding="12dp"/>
+                        android:background="@drawable/field_text_box"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -326,7 +323,7 @@
 
                     </LinearLayout>
 
-                    <!-- Current Photos Display (Static) -->
+                    <!-- Current Photos Display -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -336,100 +333,15 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="8dp"/>
 
-                    <!-- Static Photo Gallery -->
-                    <HorizontalScrollView
+                    <!-- Photos Grid RecyclerView -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/photos_grid_recyclerview"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:scrollbars="none"
-                        android:layout_marginBottom="12dp">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <!-- Photo 1 -->
-                            <FrameLayout
-                                android:layout_width="100dp"
-                                android:layout_height="100dp"
-                                android:layout_marginEnd="8dp">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:src="@drawable/item_placeholder"
-                                    android:scaleType="centerCrop"
-                                    android:background="@drawable/item_image_background"
-                                    android:contentDescription="Photo 1"/>
-
-                                <!-- Dustbin Icon -->
-                                <ImageView
-                                    android:layout_width="28dp"
-                                    android:layout_height="28dp"
-                                    android:layout_gravity="top|end"
-                                    android:layout_margin="4dp"
-                                    android:src="@android:drawable/ic_menu_delete"
-                                    android:padding="4dp"
-                                    android:scaleType="fitCenter"
-                                    android:contentDescription="Delete Photo"/>
-
-                            </FrameLayout>
-
-                            <!-- Photo 2 -->
-                            <FrameLayout
-                                android:layout_width="100dp"
-                                android:layout_height="100dp"
-                                android:layout_marginEnd="8dp">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:src="@drawable/item_placeholder"
-                                    android:scaleType="centerCrop"
-                                    android:background="@drawable/item_image_background"
-                                    android:contentDescription="Photo 2"/>
-
-                                <!-- Dustbin Icon -->
-                                <ImageView
-                                    android:layout_width="28dp"
-                                    android:layout_height="28dp"
-                                    android:layout_gravity="top|end"
-                                    android:layout_margin="4dp"
-                                    android:src="@android:drawable/ic_menu_delete"
-                                    android:padding="4dp"
-                                    android:scaleType="fitCenter"
-                                    android:contentDescription="Delete Photo"/>
-
-                            </FrameLayout>
-
-                        </LinearLayout>
-
-                    </HorizontalScrollView>
-
-                    <!-- Add Photo Button -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:background="@drawable/search_background"
-                        android:padding="24dp">
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:src="@drawable/ic_upload"
-                            android:contentDescription="Upload"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Add Photo"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_color"
-                            android:layout_marginTop="8dp"/>
-
-                    </LinearLayout>
+                        android:overScrollMode="never"
+                        android:nestedScrollingEnabled="false"
+                        android:layout_marginBottom="12dp"/>
 
                 </LinearLayout>
 
