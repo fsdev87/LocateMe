@@ -76,3 +76,8 @@ out/
 
 # Log files
 *.log
+
+# Backend files
+backend/node_modules/
+backend/.env
+backend/uploads/
