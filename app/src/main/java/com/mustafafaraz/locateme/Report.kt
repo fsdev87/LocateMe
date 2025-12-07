@@ -154,7 +154,7 @@ class Report : AppCompatActivity() {
         findViewById<View>(R.id.nav_search).setOnClickListener {
             val intent = Intent(this, Home::class.java)
             startActivity(intent)
-            finish()
+            finishAffinity()
         }
 
         findViewById<View>(R.id.nav_report).setOnClickListener {
@@ -164,6 +164,7 @@ class Report : AppCompatActivity() {
         findViewById<View>(R.id.nav_profile).setOnClickListener {
             val intent = Intent(this, Profile::class.java)
             startActivity(intent)
+            finishAffinity()
         }
     }
 

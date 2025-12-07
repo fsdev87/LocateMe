@@ -85,7 +85,7 @@ Update FCM token for push notifications
 
 ### GET `/users/profile` 🔒
 
-Get current user profile
+Get current user profile with statistics
 
 **Response:**
 
@@ -97,11 +97,26 @@ Get current user profile
     "full_name": "John Doe",
     "email": "john@student.fast.edu.pk",
     "student_id": "23I-0631",
+    "batch": "2023",
+    "department": "Computer Science",
+    "section": "A",
     "profile_pic": "http://server.com/uploads/profiles/pic.jpg",
-    ...
+    "stats": {
+      "total_items": 15,
+      "resolved_items": 12,
+      "success_rate": 80.0
+    },
+    "created_at": "2025-01-01T00:00:00.000Z",
+    "updated_at": "2025-12-07T10:00:00.000Z"
   }
 }
 ```
+
+**Statistics explained:**
+
+- `total_items`: Total number of items posted by the user
+- `resolved_items`: Number of items marked as RESOLVED
+- `success_rate`: Percentage of resolved items (resolved/total \* 100)
 
 ### PUT `/users/profile` 🔒
 
