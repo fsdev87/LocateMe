@@ -142,7 +142,9 @@ Get user by ID (to view other users' profiles)
 
 ### GET `/items` 🔒
 
-Get all items (home feed)
+Get all items (home feed - excludes current user's items)
+
+**Behavior:** Returns items posted by OTHER users only. Current user's items are excluded from the home feed.
 
 **Query Parameters:**
 
@@ -154,6 +156,8 @@ Get all items (home feed)
 - `offset` - Default: 0
 
 **Example:** `/items?type=LOST&category=ELECTRONICS&search=phone`
+
+**Response:** Array of items (excluding current user's items)
 
 ### POST `/items` 🔒
 

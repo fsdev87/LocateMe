@@ -136,6 +136,7 @@ exports.createItem = async (req, res) => {
 // Get all items (home feed) with filters
 exports.getAllItems = async (req, res) => {
   try {
+    const userId = req.userId; // Current logged-in user
     const {
       type,
       category,
@@ -145,14 +146,17 @@ exports.getAllItems = async (req, res) => {
       offset = 0,
     } = req.query;
 
+    console.log("[getAllItems] Current user ID:", userId);
+
     let query = `
       SELECT i.*, u.full_name as user_name, u.email as user_email, u.profile_pic as user_profile_pic
       FROM items i
       LEFT JOIN users u ON i.user_id = u.id
       WHERE i.deleted_at IS NULL
+      AND i.user_id != ?
     `;
 
-    const params = [];
+    const params = [userId]; // Exclude current user's items
 
     // Apply filters
     if (type) {
