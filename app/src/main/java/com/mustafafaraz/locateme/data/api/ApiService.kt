@@ -77,4 +77,22 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("id") itemId: Int
     ): Response<ApiResponse<Unit>>
+
+    // Save/Unsave Item Endpoints
+    @POST("api/items/save")
+    suspend fun saveItem(
+        @Header("Authorization") token: String,
+        @Body request: SaveItemRequest
+    ): Response<ApiResponse<Unit>>
+
+    @DELETE("api/items/save/{itemId}")
+    suspend fun unsaveItem(
+        @Header("Authorization") token: String,
+        @Path("itemId") itemId: Int
+    ): Response<ApiResponse<Unit>>
+
+    @GET("api/items/saved")
+    suspend fun getSavedItems(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<List<Item>>>
 }

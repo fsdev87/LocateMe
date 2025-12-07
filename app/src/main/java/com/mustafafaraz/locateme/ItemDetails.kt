@@ -1,7 +1,6 @@
 package com.mustafafaraz.locateme
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -18,6 +17,7 @@ import com.bumptech.glide.Glide
 import com.mustafafaraz.locateme.adapter.ImageGalleryAdapter
 import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.data.model.Item
+import com.mustafafaraz.locateme.data.model.SaveItemRequest
 import com.mustafafaraz.locateme.utils.TokenManager
 import kotlinx.coroutines.launch
 
@@ -27,6 +27,7 @@ class ItemDetails : AppCompatActivity() {
     private lateinit var mainImageView: ImageView
     private lateinit var imagesRecyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
+    private lateinit var bookmarkButton: ImageView
     private var currentItem: Item? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -190,9 +191,58 @@ class ItemDetails : AppCompatActivity() {
             startActivity(Intent.createChooser(shareIntent, "Share Item"))
         }
 
-        // Bookmark button
-        findViewById<ImageView>(R.id.bookmark_button).setOnClickListener {
-            Toast.makeText(this, "Bookmark feature coming soon", Toast.LENGTH_SHORT).show()
+        // Bookmark button - Save/Unsave functionality
+        bookmarkButton = findViewById(R.id.bookmark_button)
+        updateBookmarkIcon(item.isSaved)
+
+        bookmarkButton.setOnClickListener {
+            toggleSaveItem(item)
+        }
+    }
+
+    private fun updateBookmarkIcon(isSaved: Boolean) {
+        if (isSaved) {
+            bookmarkButton.setImageResource(R.drawable.ic_bookmark)
+        } else {
+            bookmarkButton.setImageResource(R.drawable.ic_bookmark_outline)
+        }
+    }
+
+    private fun toggleSaveItem(item: Item) {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) {
+                    Toast.makeText(this@ItemDetails, "Please login", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val authHeader = "Bearer $token"
+
+                val response = if (item.isSaved) {
+                    // Unsave item
+                    RetrofitClient.apiService.unsaveItem(authHeader, item.id)
+                } else {
+                    // Save item
+                    RetrofitClient.apiService.saveItem(authHeader, SaveItemRequest(item.id))
+                }
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    // Toggle the saved state
+                    item.isSaved = !item.isSaved
+                    currentItem = item
+                    updateBookmarkIcon(item.isSaved)
+
+                    val message = if (item.isSaved) "Item saved" else "Item unsaved"
+                    Toast.makeText(this@ItemDetails, message, Toast.LENGTH_SHORT).show()
+                } else {
+                    val errorMessage = response.body()?.message ?: "Operation failed"
+                    Toast.makeText(this@ItemDetails, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ItemDetails", "Error toggling save", e)
+                Toast.makeText(this@ItemDetails, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

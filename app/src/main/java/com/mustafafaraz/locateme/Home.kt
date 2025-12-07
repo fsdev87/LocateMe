@@ -72,6 +72,12 @@ class Home : AppCompatActivity() {
         loadItems()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Reload items when returning from ItemDetails to update save status
+        loadItems()
+    }
+
     private fun initializeViews() {
         itemsRecyclerView = findViewById(R.id.items_recycler_view)
         progressBar = findViewById(R.id.progress_bar)

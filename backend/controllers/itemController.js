@@ -210,8 +210,19 @@ exports.getAllItems = async (req, res) => {
 
     const [items] = await pool.execute(query, params);
 
-    // Format items with full URLs
-    const formattedItems = items.map((item) => formatItem(item));
+    // Get all saved item IDs for current user
+    const [savedItems] = await pool.execute(
+      "SELECT item_id FROM saved_items WHERE user_id = ?",
+      [userId]
+    );
+    const savedItemIds = new Set(savedItems.map((s) => s.item_id));
+
+    // Format items with full URLs and add is_saved flag
+    const formattedItems = items.map((item) => {
+      const formattedItem = formatItem(item);
+      formattedItem.is_saved = savedItemIds.has(item.id);
+      return formattedItem;
+    });
 
     res.status(200).json({
       success: true,
@@ -236,6 +247,7 @@ exports.getAllItems = async (req, res) => {
 exports.getItemById = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
     const [items] = await pool.execute(
       `SELECT i.*, u.full_name as user_name, u.email as user_email, u.student_id as user_student_id,
@@ -255,6 +267,14 @@ exports.getItemById = async (req, res) => {
     }
 
     const item = formatItem(items[0]);
+
+    // Check if current user has saved this item
+    const [saved] = await pool.execute(
+      "SELECT id FROM saved_items WHERE user_id = ? AND item_id = ?",
+      [userId, id]
+    );
+
+    item.is_saved = saved.length > 0;
 
     res.status(200).json({
       success: true,
@@ -299,6 +319,7 @@ exports.getMyItems = async (req, res) => {
 
     const [items] = await pool.execute(query, params);
 
+    // Format items with full URLs
     const formattedItems = items.map((item) => formatItem(item));
 
     res.status(200).json({
@@ -500,9 +521,9 @@ exports.saveItem = async (req, res) => {
       });
     }
 
-    // Check if item exists
+    // Check if item exists and is not owned by the user
     const [items] = await pool.execute(
-      "SELECT id FROM items WHERE id = ? AND deleted_at IS NULL",
+      "SELECT id, user_id FROM items WHERE id = ? AND deleted_at IS NULL",
       [itemId]
     );
 
@@ -510,6 +531,14 @@ exports.saveItem = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Item not found",
+      });
+    }
+
+    // Prevent users from saving their own items
+    if (items[0].user_id === userId) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot save your own items",
       });
     }
 
@@ -594,7 +623,11 @@ exports.getSavedItems = async (req, res) => {
       [userId]
     );
 
-    const formattedItems = items.map((item) => formatItem(item));
+    const formattedItems = items.map((item) => {
+      const formattedItem = formatItem(item);
+      formattedItem.is_saved = true; // All items in saved list are saved by definition
+      return formattedItem;
+    });
 
     res.status(200).json({
       success: true,

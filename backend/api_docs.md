@@ -242,7 +242,42 @@ Get all items (home feed - excludes current user's items)
 
 **Example:** `/items?type=LOST&category=ELECTRONICS&search=phone`
 
-**Response:** Array of items (excluding current user's items)
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 5,
+      "title": "Lost Backpack",
+      "description": "Blue backpack with laptop inside",
+      "category": "BAGS",
+      "location": "Library 2nd Floor",
+      "type": "LOST",
+      "status": "ACTIVE",
+      "image_urls": ["https://server.com/uploads/items/backpack.jpg"],
+      "user_id": 7,
+      "user_name": "Alice Johnson",
+      "user_email": "alice@example.com",
+      "user_profile_pic": "https://server.com/uploads/profiles/alice.jpg",
+      "date_reported": "2025-12-09T14:30:00.000Z",
+      "expires_at": null,
+      "is_saved": false,
+      "created_at": "2025-12-09T14:30:00.000Z",
+      "updated_at": "2025-12-09T14:30:00.000Z"
+    }
+  ],
+  "total": 42,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+**Note:**
+
+- Current user's own items are excluded from this feed
+- `is_saved` indicates whether the current user has saved this item
 
 ### POST `/items` 🔒
 
@@ -292,10 +327,15 @@ Get item by ID with detailed user information
     "user_department": "Computer Science",
     "user_section": "A",
     "user_profile_pic": "https://server.com/uploads/profiles/pic.jpg",
+    "is_saved": true,
     "created_at": "2025-12-07T10:00:00.000Z"
   }
 }
 ```
+
+**Note:** `is_saved` indicates whether the current user has saved this item.
+
+````
 
 ### GET `/items/my-items` 🔒
 
@@ -335,7 +375,9 @@ Get current user's items
     }
   ]
 }
-```
+````
+
+````
 
 ### PUT `/items/:id` 🔒
 
@@ -357,7 +399,7 @@ Update item (only owner can update)
     "data:image/png;base64,iVBORw0KGgoAAAANS..."
   ]
 }
-```
+````
 
 **Important Notes:**
 
@@ -402,7 +444,9 @@ Delete item (soft delete - only owner can delete)
 
 ### POST `/items/save` 🔒
 
-Save an item
+Save an item to your saved items list
+
+**Note:** You cannot save your own items, only items posted by other users.
 
 **Body:**
 
@@ -412,13 +456,67 @@ Save an item
 }
 ```
 
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Item saved successfully"
+}
+```
+
+**Errors:**
+
+- 400: Item already saved OR attempting to save your own item
+- 404: Item not found
+
 ### DELETE `/items/save/:itemId` 🔒
 
-Unsave an item
+Remove an item from your saved items list
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Item unsaved successfully"
+}
+```
 
 ### GET `/items/saved` 🔒
 
-Get all saved items
+Get all items you have saved
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 5,
+      "title": "Found Wallet",
+      "description": "Brown leather wallet found in cafeteria",
+      "category": "WALLETS",
+      "location": "Main Cafeteria",
+      "type": "FOUND",
+      "status": "ACTIVE",
+      "image_urls": ["https://server.com/uploads/items/wallet.jpg"],
+      "user_id": 3,
+      "user_name": "Jane Smith",
+      "user_email": "jane@example.com",
+      "user_profile_pic": "https://server.com/uploads/profiles/jane.jpg",
+      "date_reported": "2025-12-08T10:00:00.000Z",
+      "expires_at": null,
+      "is_saved": true,
+      "created_at": "2025-12-08T10:00:00.000Z",
+      "updated_at": "2025-12-08T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Note:** All items in this list will have `is_saved: true` by definition.
 
 ---
 

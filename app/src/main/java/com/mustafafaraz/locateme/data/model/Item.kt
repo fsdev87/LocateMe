@@ -31,7 +31,9 @@ data class Item(
     @SerializedName("created_at")
     val createdAt: String,
     @SerializedName("updated_at")
-    val updatedAt: String
+    val updatedAt: String,
+    @SerializedName("is_saved")
+    var isSaved: Boolean = false
 ) {
     // Remove :5000 port from image URLs (backend includes it incorrectly)
     val imageUrls: List<String>
@@ -59,4 +61,8 @@ data class UpdateItemRequest(
     val type: String, // LOST or FOUND
     val status: String, // ACTIVE, RESOLVED, EXPIRED
     val itemImages: List<String>? = null // base64 encoded images (no data URI prefix)
+)
+
+data class SaveItemRequest(
+    val itemId: Int
 )

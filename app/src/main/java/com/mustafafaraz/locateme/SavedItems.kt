@@ -1,99 +1,96 @@
 package com.mustafafaraz.locateme
 
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.mustafafaraz.locateme.adapter.SavedItemsAdapter
+import com.mustafafaraz.locateme.adapter.ItemAdapter
+import com.mustafafaraz.locateme.data.api.RetrofitClient
+import com.mustafafaraz.locateme.utils.TokenManager
+import kotlinx.coroutines.launch
 
 class SavedItems : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: SavedItemsAdapter
-    private lateinit var savedItemsList: MutableList<SavedItem>
+    private lateinit var adapter: ItemAdapter
+    private lateinit var tokenManager: TokenManager
+    private lateinit var progressBar: ProgressBar
+    private lateinit var emptyView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_saved_items)
 
+        tokenManager = TokenManager(this)
+
         recyclerView = findViewById(R.id.saved_items_recyclerview)
+        progressBar = findViewById(R.id.progress_bar)
+        emptyView = findViewById(R.id.empty_view)
         val backButton = findViewById<ImageView>(R.id.back_button)
 
         backButton.setOnClickListener {
             finish()
         }
 
-        savedItemsList = mutableListOf(
-            SavedItem(
-                id = "1",
-                title = "Dark Chocolate Cake",
-                description = "Found a chocolate cake in the library. Contact me asap.",
-                badge = "FOUND",
-                location = "Library - 3rd floor",
-                time = "1 hour ago",
-                personName = "Abigail",
-                personEmail = "abigail@example.com",
-                personPhone = "+1234567890",
-                imageResId = R.drawable.item_placeholder
-            ),
-            SavedItem(
-                id = "2",
-                title = "Blue Backpack",
-                description = "Lost my blue backpack with important documents.",
-                badge = "LOST",
-                location = "Student Center",
-                time = "2 hours ago",
-                personName = "John Doe",
-                personEmail = "john@example.com",
-                personPhone = "+1987654321",
-                imageResId = R.drawable.item_placeholder
-            ),
-            SavedItem(
-                id = "3",
-                title = "Silver Headphones",
-                description = "Found silver headphones near the cafeteria.",
-                badge = "FOUND",
-                location = "Cafeteria",
-                time = "3 hours ago",
-                personName = "Sarah",
-                personEmail = "sarah@example.com",
-                personPhone = "+1122334455",
-                imageResId = R.drawable.item_placeholder
-            ),
-            SavedItem(
-                id = "4",
-                title = "Car Keys",
-                description = "Lost my car keys, very important.",
-                badge = "LOST",
-                location = "Parking Lot",
-                time = "30 minutes ago",
-                personName = "Mike",
-                personEmail = "mike@example.com",
-                personPhone = "+1555666777",
-                imageResId = R.drawable.item_placeholder
-            ),
-            SavedItem(
-                id = "5",
-                title = "Red Wallet",
-                description = "Found a red wallet with cash and ID.",
-                badge = "FOUND",
-                location = "Library - 2nd floor",
-                time = "45 minutes ago",
-                personName = "Emma",
-                personEmail = "emma@example.com",
-                personPhone = "+1888999000",
-                imageResId = R.drawable.item_placeholder
-            )
-        )
-
         setupRecyclerView()
+        loadSavedItems()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reload saved items when returning from ItemDetails
+        loadSavedItems()
     }
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = SavedItemsAdapter(this, savedItemsList)
+        adapter = ItemAdapter(this, mutableListOf())
         recyclerView.adapter = adapter
     }
-}
 
+    private fun loadSavedItems() {
+        lifecycleScope.launch {
+            try {
+                progressBar.visibility = View.VISIBLE
+                emptyView.visibility = View.GONE
+
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) {
+                    Toast.makeText(this@SavedItems, "Please login", Toast.LENGTH_SHORT).show()
+                    finish()
+                    return@launch
+                }
+
+                val authHeader = "Bearer $token"
+                val response = RetrofitClient.apiService.getSavedItems(authHeader)
+
+                progressBar.visibility = View.GONE
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val items = response.body()?.data ?: emptyList()
+
+                    if (items.isEmpty()) {
+                        emptyView.visibility = View.VISIBLE
+                        emptyView.text = "No saved items yet"
+                    } else {
+                        emptyView.visibility = View.GONE
+                        adapter.updateItems(items)
+                    }
+                } else {
+                    Toast.makeText(this@SavedItems, "Failed to load saved items", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("SavedItems", "Error loading saved items", e)
+                progressBar.visibility = View.GONE
+                Toast.makeText(this@SavedItems, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+}
