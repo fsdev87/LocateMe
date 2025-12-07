@@ -72,8 +72,7 @@
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:src="@drawable/ic_person"
-                    android:background="@drawable/profile_avatar_background"
-                    android:scaleType="centerCrop"/>
+                    android:background="@drawable/profile_avatar_background"/>
 
                 <TextView
                     android:id="@+id/change_photo_button"

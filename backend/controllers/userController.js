@@ -44,12 +44,12 @@ exports.getProfile = async (req, res) => {
 // Update user profile
 exports.updateProfile = async (req, res) => {
   try {
-    console.log('\n=== UPDATE PROFILE REQUEST ===');
-    console.log('[updateProfile] User ID:', req.userId);
-    console.log('[updateProfile] Body keys:', Object.keys(req.body));
-    console.log('[updateProfile] Has profilePic:', !!req.body.profilePic);
-    console.log('[updateProfile] Saved profile pic:', req.savedProfilePic);
-    
+    console.log("\n=== UPDATE PROFILE REQUEST ===");
+    console.log("[updateProfile] User ID:", req.userId);
+    console.log("[updateProfile] Body keys:", Object.keys(req.body));
+    console.log("[updateProfile] Has profilePic:", !!req.body.profilePic);
+    console.log("[updateProfile] Saved profile pic:", req.savedProfilePic);
+
     const userId = req.userId;
     const { fullName, studentId, batch, department, section } = req.body;
 

@@ -16,12 +16,12 @@ const formatMessage = (message) => {
 // Send message
 exports.sendMessage = async (req, res) => {
   try {
-    console.log('\n=== SEND MESSAGE REQUEST ===');
-    console.log('[sendMessage] User ID:', req.userId);
-    console.log('[sendMessage] Chat ID:', req.body.chatId);
-    console.log('[sendMessage] Has messageImage:', !!req.body.messageImage);
-    console.log('[sendMessage] Saved message image:', req.savedMessageImage);
-    
+    console.log("\n=== SEND MESSAGE REQUEST ===");
+    console.log("[sendMessage] User ID:", req.userId);
+    console.log("[sendMessage] Chat ID:", req.body.chatId);
+    console.log("[sendMessage] Has messageImage:", !!req.body.messageImage);
+    console.log("[sendMessage] Saved message image:", req.savedMessageImage);
+
     const userId = req.userId;
     const { chatId, content } = req.body;
 

@@ -131,20 +131,20 @@ const saveBase64Image = async (base64String, uploadDir, fieldName) => {
  */
 const processProfilePic = async (req, res, next) => {
   try {
-    console.log('[processProfilePic] Has profilePic:', !!req.body.profilePic);
-    
+    console.log("[processProfilePic] Has profilePic:", !!req.body.profilePic);
+
     if (req.body.profilePic) {
       const filePath = await saveBase64Image(
         req.body.profilePic,
         "profiles",
         "profilePic"
       );
-      console.log('[processProfilePic] Saved to:', filePath);
+      console.log("[processProfilePic] Saved to:", filePath);
       req.savedProfilePic = filePath;
     }
     next();
   } catch (error) {
-    console.error('[processProfilePic] Error:', error.message);
+    console.error("[processProfilePic] Error:", error.message);
     return res.status(400).json({
       success: false,
       message: error.message,
@@ -157,12 +157,18 @@ const processProfilePic = async (req, res, next) => {
  */
 const processItemImages = async (req, res, next) => {
   try {
-    console.log('[processItemImages] Has itemImages:', !!req.body.itemImages);
-    console.log('[processItemImages] Is array:', Array.isArray(req.body.itemImages));
-    
+    console.log("[processItemImages] Has itemImages:", !!req.body.itemImages);
+    console.log(
+      "[processItemImages] Is array:",
+      Array.isArray(req.body.itemImages)
+    );
+
     if (req.body.itemImages && Array.isArray(req.body.itemImages)) {
-      console.log('[processItemImages] Number of images:', req.body.itemImages.length);
-      
+      console.log(
+        "[processItemImages] Number of images:",
+        req.body.itemImages.length
+      );
+
       if (req.body.itemImages.length > 5) {
         return res.status(400).json({
           success: false,
@@ -173,8 +179,12 @@ const processItemImages = async (req, res, next) => {
       const savedPaths = [];
       for (let i = 0; i < req.body.itemImages.length; i++) {
         const base64Image = req.body.itemImages[i];
-        console.log(`[processItemImages] Processing image ${i + 1}/${req.body.itemImages.length}`);
-        
+        console.log(
+          `[processItemImages] Processing image ${i + 1}/${
+            req.body.itemImages.length
+          }`
+        );
+
         const filePath = await saveBase64Image(
           base64Image,
           "items",
@@ -183,16 +193,16 @@ const processItemImages = async (req, res, next) => {
         console.log(`[processItemImages] Saved image ${i + 1} to:`, filePath);
         savedPaths.push(filePath);
       }
-      
+
       req.savedItemImages = savedPaths;
-      console.log('[processItemImages] All saved paths:', savedPaths);
+      console.log("[processItemImages] All saved paths:", savedPaths);
     } else {
-      console.log('[processItemImages] No item images to process');
+      console.log("[processItemImages] No item images to process");
     }
     next();
   } catch (error) {
-    console.error('[processItemImages] Error:', error.message);
-    console.error('[processItemImages] Stack:', error.stack);
+    console.error("[processItemImages] Error:", error.message);
+    console.error("[processItemImages] Stack:", error.stack);
     return res.status(400).json({
       success: false,
       message: error.message,

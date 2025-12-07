@@ -85,7 +85,7 @@ class EditItem : AppCompatActivity() {
 
         // Set default selections
         itemTypeSpinner.setSelection(0) // Lost Item
-        itemCategory.setSelection(6) // Food & Beverages
+        itemCategory.setSelection(5) // OTHER (valid index)
         itemStatusSpinner.setSelection(0) // active
     }
 
