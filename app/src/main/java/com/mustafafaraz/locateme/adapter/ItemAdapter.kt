@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide
 import com.mustafafaraz.locateme.ItemDetails
 import com.mustafafaraz.locateme.R
 import com.mustafafaraz.locateme.data.model.Item
+import com.mustafafaraz.locateme.utils.TimeFormatter
 
 class ItemAdapter(
     private val context: Context,
@@ -54,7 +55,7 @@ class ItemAdapter(
             itemTitle.text = item.title
             itemDescription.text = item.description
             itemLocation.text = item.location
-            itemTime.text = formatTime(item.createdAt)
+            itemTime.text = TimeFormatter.formatTimeAgo(item.createdAt)
             itemPerson.text = item.userName
 
             // Click listener to open item details
@@ -63,18 +64,6 @@ class ItemAdapter(
                     putExtra("item_id", item.id)
                 }
                 context.startActivity(intent)
-            }
-        }
-
-        private fun formatTime(timestamp: String): String {
-            // Simple time formatting - you can enhance this
-            // For now, just return the timestamp as is
-            return try {
-                // You can use SimpleDateFormat or java.time to format this properly
-                // For now, return a simple format
-                timestamp.substringBefore("T")
-            } catch (e: Exception) {
-                timestamp
             }
         }
     }
@@ -96,4 +85,3 @@ class ItemAdapter(
         notifyDataSetChanged()
     }
 }
-

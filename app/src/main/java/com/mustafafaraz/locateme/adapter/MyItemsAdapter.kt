@@ -9,10 +9,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.mustafafaraz.locateme.EditItem
 import com.mustafafaraz.locateme.ItemDetails
 import com.mustafafaraz.locateme.R
 import com.mustafafaraz.locateme.data.model.Item
+import com.mustafafaraz.locateme.utils.TimeFormatter
 
 class MyItemsAdapter(
     private val context: Context,
@@ -22,17 +24,30 @@ class MyItemsAdapter(
     inner class MyItemViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
 
+        private val itemImage: ImageView = itemView.findViewById(R.id.item_image)
         private val itemBadge: TextView = itemView.findViewById(R.id.item_badge)
         private val itemTitle: TextView = itemView.findViewById(R.id.item_title)
         private val itemDescription: TextView = itemView.findViewById(R.id.item_description)
         private val itemLocation: TextView = itemView.findViewById(R.id.item_location)
         private val itemTime: TextView = itemView.findViewById(R.id.item_time)
-        //private val viewsAndResponses: TextView = itemView.findViewById(R.id.views_and_responses)
+        private val itemPerson: TextView = itemView.findViewById(R.id.item_person)
         private val statusBadge: TextView = itemView.findViewById(R.id.status_badge)
         private val editIcon: ImageView = itemView.findViewById(R.id.edit_icon)
         private val itemContainer: LinearLayout = itemView.findViewById(R.id.item_container)
 
         fun bind(myItem: Item) {
+            // Load first image or placeholder using Glide
+            if (myItem.imageUrls.isNotEmpty()) {
+                Glide.with(context)
+                    .load(myItem.imageUrls[0])
+                    .placeholder(R.drawable.item_placeholder)
+                    .error(R.drawable.item_placeholder)
+                    .centerCrop()
+                    .into(itemImage)
+            } else {
+                itemImage.setImageResource(R.drawable.item_placeholder)
+            }
+
             itemBadge.text = myItem.type
 
             // Set badge background color based on type
@@ -45,8 +60,8 @@ class MyItemsAdapter(
             itemTitle.text = myItem.title
             itemDescription.text = myItem.description
             itemLocation.text = myItem.location
-            itemTime.text = myItem.createdAt
-            //viewsAndResponses.text = myItem.viewsAndResponses
+            itemTime.text = TimeFormatter.formatTimeAgo(myItem.createdAt)
+            itemPerson.text = myItem.userName
             statusBadge.text = myItem.status
 
             editIcon.setOnClickListener {
@@ -81,8 +96,6 @@ class MyItemsAdapter(
 
     override fun onBindViewHolder(holder: MyItemViewHolder, position: Int) {
         holder.bind(items[position])
-
-
 
     }
 

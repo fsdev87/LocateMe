@@ -93,95 +93,89 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_vertical">
+            android:orientation="vertical">
 
+            <!-- Location -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="4dp"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
 
                 <ImageView
                     android:layout_width="12dp"
                     android:layout_height="12dp"
                     android:src="@drawable/ic_location"
-                    android:contentDescription="Location"
-                    android:layout_marginEnd="4dp"/>
+                    android:contentDescription="Location"/>
 
                 <TextView
                     android:id="@+id/item_location"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Library - 3rd floor"
-                    android:textColor="@color/text_color"
+                    android:text="Location"
                     android:textSize="12sp"
-                    android:layout_marginEnd="16dp"/>
-
-
+                    android:textColor="@color/text_color"
+                    android:paddingStart="4dp"/>
 
             </LinearLayout>
 
+            <!-- Time -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:layout_marginBottom="4dp">
 
                 <ImageView
                     android:layout_width="12dp"
                     android:layout_height="12dp"
                     android:src="@drawable/ic_time"
-                    android:contentDescription="Time"
-                    android:layout_marginEnd="4dp"/>
+                    android:contentDescription="Time"/>
 
                 <TextView
                     android:id="@+id/item_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="1 hour ago"
-                    android:textColor="@color/text_color"
+                    android:text="2 hours ago"
                     android:textSize="12sp"
-                    android:layout_marginEnd="16dp"/>
+                    android:textColor="@color/text_color"
+                    android:paddingStart="4dp"/>
 
-
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" • "
+                    android:textSize="12sp"
+                    android:textColor="@color/text_color"/>
 
             </LinearLayout>
 
+            <!-- Person -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
 
                 <ImageView
                     android:layout_width="12dp"
                     android:layout_height="12dp"
                     android:src="@drawable/ic_person"
-                    android:contentDescription="Person"
-                    android:layout_marginEnd="4dp"/>
+                    android:contentDescription="Person"/>
 
                 <TextView
                     android:id="@+id/item_person"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Abigail"
+                    android:text="Person Name"
+                    android:textSize="12sp"
                     android:textColor="@color/text_color"
-                    android:textSize="12sp"/>
+                    android:paddingStart="4dp"/>
 
             </LinearLayout>
-
-
-
-
-
-
-
-
-
-
-
-
 
         </LinearLayout>
 

@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MyItems">
+    android:orientation="vertical"
+    android:background="@color/white">
 
-    <!-- header -->
+    <!-- Top Header -->
     <LinearLayout
-        android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -17,6 +15,7 @@
         android:gravity="center_vertical"
         android:background="@color/white">
 
+        <!-- Back Button -->
         <ImageView
             android:id="@+id/back_button"
             android:layout_width="24dp"
@@ -32,85 +31,94 @@
             android:textSize="18sp"
             android:textColor="@color/black"
             android:textStyle="bold"
-            android:paddingStart="12dp"/>
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"/>
 
     </LinearLayout>
 
-    <!-- Divider -->
-    <View
-        android:id="@+id/divider"
-        android:layout_below="@id/header"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"
-        android:alpha="0.2"/>
-
-    <!-- My Items Card -->
+    <!-- Tabs -->
     <LinearLayout
-        android:id="@+id/myitems"
-        android:layout_below="@id/divider"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="12dp"
-        android:background="@drawable/item_card_background">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:gravity="center">
 
-        <!-- Tabs -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tab_active"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="Active"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginEnd="4dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"/>
+
+        <TextView
+            android:id="@+id/tab_resolved"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="Resolved"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"/>
+
+        <TextView
+            android:id="@+id/tab_expired"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:text="Expired"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginStart="4dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"/>
+
+    </LinearLayout>
+
+    <!-- Content Area -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@drawable/login_signup_background"
-            android:padding="4dp"
-            android:layout_marginBottom="12dp">
+            android:layout_gravity="center"
+            android:visibility="gone"/>
 
-            <TextView
-                android:id="@+id/tab_active"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selected_button_login_signup"
-                android:gravity="center"
-                android:padding="8dp"
-                android:text="Active"
-                android:textColor="@color/black"
-                android:textStyle="bold"
-                android:textSize="12sp" />
+        <!-- Empty View -->
+        <TextView
+            android:id="@+id/empty_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="No items found"
+            android:textSize="16sp"
+            android:textColor="@color/text_color"
+            android:visibility="gone"/>
 
-            <TextView
-                android:id="@+id/tab_resolved"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="8dp"
-                android:text="Resolved"
-                android:textColor="@color/black"
-                android:textStyle="bold"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tab_expired"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="8dp"
-                android:text="Expired"
-                android:textColor="@color/black"
-                android:textStyle="bold"
-                android:textSize="12sp" />
-
-        </LinearLayout>
-
-        <!-- RecyclerView for My Items -->
+        <!-- RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/my_items_recyclerview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="vertical"
+            android:padding="16dp"
             android:clipToPadding="false"/>
 
-    </LinearLayout>
+    </FrameLayout>
 
-</RelativeLayout>
+</LinearLayout>
+

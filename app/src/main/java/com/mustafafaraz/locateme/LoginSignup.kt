@@ -195,13 +195,13 @@ class LoginSignup : AppCompatActivity() {
                         tokenManager.saveAuthData(
                             token = authData.token,
                             userId = authData.user.id.toString(),
-                            userName = authData.user.full_name,
+                            userName = authData.user.fullName,
                             userEmail = authData.user.email
                         )
 
                         Toast.makeText(
                             this@LoginSignup,
-                            "Login successful! Welcome ${authData.user.full_name}",
+                            "Login successful! Welcome ${authData.user.fullName}",
                             Toast.LENGTH_SHORT
                         ).show()
 
@@ -309,13 +309,13 @@ class LoginSignup : AppCompatActivity() {
                         tokenManager.saveAuthData(
                             token = authData.token,
                             userId = authData.user.id.toString(),
-                            userName = authData.user.full_name,
+                            userName = authData.user.fullName,
                             userEmail = authData.user.email
                         )
 
                         Toast.makeText(
                             this@LoginSignup,
-                            "Account created successfully! Welcome ${authData.user.full_name}",
+                            "Account created successfully! Welcome ${authData.user.fullName}",
                             Toast.LENGTH_SHORT
                         ).show()
 

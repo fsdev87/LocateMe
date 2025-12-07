@@ -236,6 +236,37 @@ Get current user's items
 - `type` - Filter by LOST or FOUND
 - `status` - Filter by ACTIVE, RESOLVED, EXPIRED
 
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "Lost iPhone 13",
+      "description": "Black iPhone 13, lost near library",
+      "category": "ELECTRONICS",
+      "location": "Library Building",
+      "type": "LOST",
+      "status": "ACTIVE",
+      "image_urls": [
+        "https://server.com/uploads/items/image1.jpg",
+        "https://server.com/uploads/items/image2.jpg"
+      ],
+      "user_id": 1,
+      "user_name": "John Doe",
+      "user_email": "john@example.com",
+      "user_profile_pic": "https://server.com/uploads/profiles/pic.jpg",
+      "date_reported": "2025-12-07T08:00:00.000Z",
+      "expires_at": null,
+      "created_at": "2025-12-07T08:00:00.000Z",
+      "updated_at": "2025-12-07T08:00:00.000Z"
+    }
+  ]
+}
+```
+
 ### PUT `/items/:id` 🔒
 
 Update item
