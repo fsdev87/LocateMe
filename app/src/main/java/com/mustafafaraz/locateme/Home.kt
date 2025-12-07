@@ -2,6 +2,8 @@ package com.mustafafaraz.locateme
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -16,6 +18,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mustafafaraz.locateme.adapter.ItemAdapter
 import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.utils.TokenManager
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class Home : AppCompatActivity() {
@@ -47,6 +51,9 @@ class Home : AppCompatActivity() {
     private var currentCategory: String? = null // null means "All Categories"
     private var currentType: String? = null // null means "All Items"
     private var currentSearch: String? = null
+
+    // Search debounce
+    private var searchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -201,8 +208,31 @@ class Home : AppCompatActivity() {
     }
 
     private fun setupSearch() {
-        // You can implement search with a TextWatcher if needed
-        // For now, search on enter or search button click
+        searchInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // Not needed
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Cancel previous search job
+                searchJob?.cancel()
+
+                // Create new search job with debounce
+                searchJob = lifecycleScope.launch {
+                    delay(500) // Wait 500ms after user stops typing
+
+                    val query = s.toString().trim()
+                    currentSearch = if (query.isEmpty()) null else query
+
+                    Log.d("Home", "Search query: $currentSearch")
+                    loadItems()
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // Not needed
+            }
+        })
     }
 
     private fun loadItems() {
