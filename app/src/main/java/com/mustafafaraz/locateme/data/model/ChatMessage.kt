@@ -15,7 +15,7 @@ data class ChatMessage(
     @SerializedName("media_url")
     private val _mediaUrl: String?,
     @SerializedName("is_read")
-    val isRead: Boolean,
+    private val _isRead: Int, // MySQL returns 0 or 1
     @SerializedName("created_at")
     val createdAt: String,
     @SerializedName("sender_name")
@@ -28,6 +28,9 @@ data class ChatMessage(
 
     val senderProfilePic: String?
         get() = _senderProfilePic?.replace(":5000", "")
+
+    val isRead: Boolean
+        get() = _isRead == 1
 }
 
 data class SendMessageRequest(
