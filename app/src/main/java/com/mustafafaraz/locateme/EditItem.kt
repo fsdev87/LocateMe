@@ -60,13 +60,11 @@ class EditItem : AppCompatActivity() {
         // Category Spinner
         val categories = arrayOf(
             "Select Category",
-            "Electronics",
-            "Books & Stationery",
-            "Clothing & Accessories",
-            "Personal Items",
-            "Sports Equipment",
-            "Food & Beverages",
-            "Other"
+            "ELECTRONICS",
+            "BAGS",
+            "KEYS",
+            "CLOTHING",
+            "OTHER"
         )
         val categoryAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)

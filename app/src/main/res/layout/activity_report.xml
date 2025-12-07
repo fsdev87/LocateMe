@@ -18,7 +18,6 @@
         android:gravity="center_vertical"
         android:background="@color/white">
 
-        <!-- Logo -->
         <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp"
@@ -37,23 +36,12 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp"/>
 
-        <!-- Chat Icon -->
         <ImageView
             android:id="@+id/chat_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_chat"
             android:contentDescription="Messages"/>
-
-        <!-- Red notification dot -->
-        <View
-            android:id="@+id/chat_notification_dot"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:background="@drawable/notification_dot"
-            android:layout_marginStart="-8dp"
-            android:layout_marginBottom="12dp"
-            android:visibility="gone"/>
 
     </LinearLayout>
 
@@ -68,7 +56,6 @@
         android:gravity="center_vertical"
         android:background="@color/white">
 
-        <!-- Back Button -->
         <ImageView
             android:id="@+id/back_button"
             android:layout_width="24dp"
@@ -174,7 +161,7 @@
                         android:id="@+id/item_title"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="e.g. Dark Chocolate Cake"
+                        android:hint="e.g. Black iPhone 13"
                         android:textSize="14sp"
                         android:background="@drawable/field_text_box"
                         android:inputType="text"
@@ -215,7 +202,7 @@
                         android:id="@+id/item_description"
                         android:layout_width="match_parent"
                         android:layout_height="120dp"
-                        android:hint="Describe the item in detail. Include color, brand, size, condition, and any distinctive features..."
+                        android:hint="Describe the item in detail..."
                         android:textSize="14sp"
                         android:textColorHint="@android:color/darker_gray"
                         android:textColor="@color/black"
@@ -267,7 +254,6 @@
 
                     </LinearLayout>
 
-                    <!-- Location Label -->
                     <TextView
                         android:id="@+id/location_label"
                         android:layout_width="wrap_content"
@@ -333,13 +319,22 @@
                             android:paddingStart="8dp"/>
 
                         <TextView
+                            android:id="@+id/photo_count_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Up to 5 Photos"
+                            android:text="0/5 Photos"
                             android:textSize="12sp"
                             android:textColor="@color/text_color"/>
 
                     </LinearLayout>
+
+                    <!-- Photos RecyclerView -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/photos_recycler_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:visibility="gone"/>
 
                     <!-- Add Photo Button -->
                     <LinearLayout
@@ -349,7 +344,8 @@
                         android:orientation="vertical"
                         android:gravity="center"
                         android:background="@drawable/search_background"
-                        android:padding="24dp">
+                        android:padding="24dp"
+                        android:layout_marginTop="8dp">
 
                         <ImageView
                             android:layout_width="32dp"
@@ -370,7 +366,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Add at least 1 photo to help your listing stand out"
+                        android:text="Add at least 1 photo (Max 5 photos)"
                         android:textSize="11sp"
                         android:textColor="@color/blue"
                         android:layout_marginTop="8dp"/>

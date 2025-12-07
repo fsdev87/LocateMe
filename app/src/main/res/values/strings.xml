@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">LocateMe</string>
+    <string name="selected_photo">Selected Photo</string>
+    <string name="remove_photo">Remove Photo</string>
 </resources>
