@@ -8,11 +8,25 @@ const formatItem = (item) => {
     console.log("[formatItem] Type:", typeof item.image_urls);
 
     try {
-      const urls = JSON.parse(item.image_urls);
-      console.log("[formatItem] Parsed URLs:", urls);
-      item.image_urls = urls.map((url) => `${process.env.SERVER_URL}/${url}`);
+      // Check if already an array (MySQL JSON column auto-parses)
+      let urls = item.image_urls;
+
+      // If it's a string, parse it
+      if (typeof item.image_urls === "string") {
+        urls = JSON.parse(item.image_urls);
+        console.log("[formatItem] Parsed URLs from string:", urls);
+      } else {
+        console.log("[formatItem] URLs already an array:", urls);
+      }
+
+      // Map to full URLs
+      item.image_urls = Array.isArray(urls)
+        ? urls.map((url) => `${process.env.SERVER_URL}/${url}`)
+        : [];
+
+      console.log("[formatItem] Final image URLs:", item.image_urls);
     } catch (error) {
-      console.error("[formatItem] JSON parse error:", error.message);
+      console.error("[formatItem] Error processing image URLs:", error.message);
       console.error("[formatItem] Invalid data:", item.image_urls);
       item.image_urls = [];
     }
