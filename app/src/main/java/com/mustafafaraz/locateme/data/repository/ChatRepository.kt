@@ -42,6 +42,14 @@ class ChatRepository(private val context: Context) {
     }
 
     /**
+     * Get chat by ID from cache
+     * Returns cached chat details for offline support
+     */
+    suspend fun getChatById(chatId: Int): Chat? {
+        return chatDao.getChatById(chatId)?.toChat()
+    }
+
+    /**
      * Sync chats from server and update cache
      * API-first: Returns fresh data from server, updates cache
      */
@@ -86,4 +94,3 @@ class ChatRepository(private val context: Context) {
         Log.d(TAG, "✅ Chat cache cleared")
     }
 }
-

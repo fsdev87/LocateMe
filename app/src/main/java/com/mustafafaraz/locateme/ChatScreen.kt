@@ -23,6 +23,7 @@ import com.mustafafaraz.locateme.adapter.ChatMessagesAdapter
 import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.data.model.ChatMessage
 import com.mustafafaraz.locateme.data.repository.MessageRepository
+import com.mustafafaraz.locateme.data.repository.ChatRepository
 import com.mustafafaraz.locateme.utils.TokenManager
 import com.mustafafaraz.locateme.utils.NetworkUtils
 import com.mustafafaraz.locateme.services.MyFirebaseMessagingService
@@ -33,6 +34,7 @@ class ChatScreen : AppCompatActivity() {
 
     private lateinit var tokenManager: TokenManager
     private lateinit var messageRepository: MessageRepository
+    private lateinit var chatRepository: ChatRepository
     private lateinit var backButton: ImageView
     private lateinit var userName: TextView
     private lateinit var messagesRecyclerView: RecyclerView
@@ -60,6 +62,7 @@ class ChatScreen : AppCompatActivity() {
 
         tokenManager = TokenManager(this)
         messageRepository = MessageRepository(this)
+        chatRepository = ChatRepository(this)
 
         // Get current user ID
         lifecycleScope.launch {
@@ -165,6 +168,15 @@ class ChatScreen : AppCompatActivity() {
                 if (token.isNullOrEmpty()) return@launch
 
                 val authHeader = "Bearer $token"
+                // First, try to load chat details from cache
+                val chatFromCache = chatRepository.getChatById(chatId)
+                chatFromCache?.let {
+                    otherUserId = it.otherUserId
+                    userName.text = it.otherUserName
+                    startAutoRefresh()
+                }
+
+                // Sync chat details from server
                 val response = RetrofitClient.apiService.getChatById(authHeader, chatId)
 
                 if (response.isSuccessful && response.body()?.success == true) {
