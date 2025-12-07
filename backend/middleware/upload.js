@@ -178,20 +178,29 @@ const processItemImages = async (req, res, next) => {
 
       const savedPaths = [];
       for (let i = 0; i < req.body.itemImages.length; i++) {
-        const base64Image = req.body.itemImages[i];
+        const imageData = req.body.itemImages[i];
         console.log(
           `[processItemImages] Processing image ${i + 1}/${
             req.body.itemImages.length
           }`
         );
 
-        const filePath = await saveBase64Image(
-          base64Image,
-          "items",
-          "itemImage"
-        );
-        console.log(`[processItemImages] Saved image ${i + 1} to:`, filePath);
-        savedPaths.push(filePath);
+        // Check if this is an existing file path or new base64 image
+        if (imageData.startsWith("uploads/")) {
+          // Existing image - keep the path as-is
+          console.log(`[processItemImages] Keeping existing image: ${imageData}`);
+          savedPaths.push(imageData);
+        } else {
+          // New base64 image - decode and save
+          console.log(`[processItemImages] Saving new base64 image ${i + 1}`);
+          const filePath = await saveBase64Image(
+            imageData,
+            "items",
+            "itemImage"
+          );
+          console.log(`[processItemImages] Saved image ${i + 1} to:`, filePath);
+          savedPaths.push(filePath);
+        }
       }
 
       req.savedItemImages = savedPaths;

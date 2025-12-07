@@ -50,3 +50,13 @@ data class CreateItemRequest(
     val type: String, // LOST or FOUND
     val itemImages: List<String>? = null // base64 encoded images (no data URI prefix)
 )
+
+data class UpdateItemRequest(
+    val title: String,
+    val description: String,
+    val category: String,
+    val location: String,
+    val type: String, // LOST or FOUND
+    val status: String, // ACTIVE, RESOLVED, EXPIRED
+    val itemImages: List<String>? = null // base64 encoded images (no data URI prefix)
+)

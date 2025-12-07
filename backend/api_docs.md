@@ -269,20 +269,59 @@ Get current user's items
 
 ### PUT `/items/:id` 🔒
 
-Update item
+Update item (only owner can update)
 
-**Body:** (application/json) - Same as create, all fields optional
+**Body:** (application/json) - All fields optional
 
 ```json
 {
   "title": "Updated Title",
-  "itemImages": ["data:image/jpeg;base64,..."]
+  "description": "Updated description",
+  "category": "ELECTRONICS",
+  "location": "Updated location",
+  "type": "LOST",
+  "status": "RESOLVED",
+  "expiresAt": "2025-12-31T23:59:59Z",
+  "itemImages": [
+    "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
+    "data:image/png;base64,iVBORw0KGgoAAAANS..."
+  ]
+}
+```
+
+**Important Notes:**
+- If `itemImages` is provided, it will **completely replace** all existing images
+- To keep existing images, don't include `itemImages` in the request
+- To remove all images, send `itemImages: []`
+- Max 5 images allowed
+- Only the item owner can update their item
+- Returns updated item with full image URLs
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Item updated successfully",
+  "data": {
+    "id": 1,
+    "title": "Updated Title",
+    "image_urls": ["https://server.com/uploads/items/newimage.jpg"],
+    ...
+  }
 }
 ```
 
 ### DELETE `/items/:id` 🔒
 
-Delete item (soft delete)
+Delete item (soft delete - only owner can delete)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Item deleted successfully"
+}
+```
 
 ### POST `/items/save` 🔒
 

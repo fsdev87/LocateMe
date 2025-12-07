@@ -318,6 +318,13 @@ exports.getMyItems = async (req, res) => {
 // Update item
 exports.updateItem = async (req, res) => {
   try {
+    console.log('\n=== UPDATE ITEM REQUEST ===');
+    console.log('[updateItem] User ID:', req.userId);
+    console.log('[updateItem] Item ID:', req.params.id);
+    console.log('[updateItem] Body keys:', Object.keys(req.body));
+    console.log('[updateItem] Has itemImages:', !!req.body.itemImages);
+    console.log('[updateItem] Saved item images:', req.savedItemImages);
+    
     const userId = req.userId;
     const { id } = req.params;
     const { title, description, category, location, type, status, expiresAt } =
@@ -373,14 +380,26 @@ exports.updateItem = async (req, res) => {
     if (req.savedItemImages && req.savedItemImages.length > 0) {
       updateFields.push("image_urls = ?");
       values.push(JSON.stringify(req.savedItemImages));
+      console.log('[updateItem] Updating images to:', req.savedItemImages);
+    } else if (req.body.itemImages !== undefined) {
+      // If itemImages is explicitly sent as empty array, clear all images
+      if (Array.isArray(req.body.itemImages) && req.body.itemImages.length === 0) {
+        updateFields.push("image_urls = ?");
+        values.push(JSON.stringify([]));
+        console.log('[updateItem] Clearing all images');
+      }
     }
 
     if (updateFields.length === 0) {
+      console.log('[updateItem] No fields to update');
       return res.status(400).json({
         success: false,
         message: "No fields to update",
       });
     }
+
+    console.log('[updateItem] Update fields:', updateFields);
+    console.log('[updateItem] Values:', values);
 
     values.push(id);
 
@@ -388,6 +407,8 @@ exports.updateItem = async (req, res) => {
       `UPDATE items SET ${updateFields.join(", ")} WHERE id = ?`,
       values
     );
+
+    console.log('[updateItem] Item updated successfully');
 
     // Get updated item
     const [updatedItems] = await pool.execute(
@@ -406,7 +427,9 @@ exports.updateItem = async (req, res) => {
       data: item,
     });
   } catch (error) {
-    console.error("Update item error:", error);
+    console.error('\n=== UPDATE ITEM ERROR ===');
+    console.error('[updateItem] Error:', error.message);
+    console.error('[updateItem] Stack:', error.stack);
     res.status(500).json({
       success: false,
       message: "Error updating item",
@@ -418,6 +441,10 @@ exports.updateItem = async (req, res) => {
 // Delete item (soft delete)
 exports.deleteItem = async (req, res) => {
   try {
+    console.log('\n=== DELETE ITEM REQUEST ===');
+    console.log('[deleteItem] User ID:', req.userId);
+    console.log('[deleteItem] Item ID:', req.params.id);
+    
     const userId = req.userId;
     const { id } = req.params;
 
@@ -440,12 +467,15 @@ exports.deleteItem = async (req, res) => {
       [id]
     );
 
+    console.log('[deleteItem] Item soft deleted successfully');
+
     res.status(200).json({
       success: true,
       message: "Item deleted successfully",
     });
   } catch (error) {
-    console.error("Delete item error:", error);
+    console.error('\n=== DELETE ITEM ERROR ===');
+    console.error('[deleteItem] Error:', error.message);
     res.status(500).json({
       success: false,
       message: "Error deleting item",

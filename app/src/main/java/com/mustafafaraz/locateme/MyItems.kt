@@ -95,23 +95,20 @@ class MyItems : AppCompatActivity() {
         tabResolved.background = null
         tabExpired.background = null
 
-        tabActive.setTextColor(ContextCompat.getColor(this, R.color.text_color))
-        tabResolved.setTextColor(ContextCompat.getColor(this, R.color.text_color))
-        tabExpired.setTextColor(ContextCompat.getColor(this, R.color.text_color))
+        tabActive.setTextColor(ContextCompat.getColor(this, R.color.black))
+        tabResolved.setTextColor(ContextCompat.getColor(this, R.color.black))
+        tabExpired.setTextColor(ContextCompat.getColor(this, R.color.black))
 
-        // Highlight selected tab
+        // Highlight selected tab with circular background
         when (tab) {
             "ACTIVE" -> {
                 tabActive.setBackgroundResource(R.drawable.selected_button_login_signup)
-                tabActive.setTextColor(ContextCompat.getColor(this, R.color.black))
             }
             "RESOLVED" -> {
                 tabResolved.setBackgroundResource(R.drawable.selected_button_login_signup)
-                tabResolved.setTextColor(ContextCompat.getColor(this, R.color.black))
             }
             "EXPIRED" -> {
                 tabExpired.setBackgroundResource(R.drawable.selected_button_login_signup)
-                tabExpired.setTextColor(ContextCompat.getColor(this, R.color.black))
             }
         }
 

@@ -46,4 +46,17 @@ interface ApiService {
         @Query("type") type: String? = null,
         @Query("status") status: String? = null
     ): Response<ApiResponse<List<Item>>>
+
+    @PUT("api/items/{id}")
+    suspend fun updateItem(
+        @Header("Authorization") token: String,
+        @Path("id") itemId: Int,
+        @Body request: UpdateItemRequest
+    ): Response<ApiResponse<Item>>
+
+    @DELETE("api/items/{id}")
+    suspend fun deleteItem(
+        @Header("Authorization") token: String,
+        @Path("id") itemId: Int
+    ): Response<ApiResponse<Unit>>
 }

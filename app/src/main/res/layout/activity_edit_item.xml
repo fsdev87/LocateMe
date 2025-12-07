@@ -315,33 +315,38 @@
                             android:paddingStart="8dp"/>
 
                         <TextView
+                            android:id="@+id/photo_count_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="2/5 Photos"
+                            android:text="0/5 Photos"
                             android:textSize="12sp"
                             android:textColor="@color/text_color"/>
 
                     </LinearLayout>
 
-                    <!-- Current Photos Display -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Current Photos:"
-                        android:textSize="12sp"
-                        android:textColor="@color/black"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp"/>
-
-                    <!-- Photos Grid RecyclerView -->
+                    <!-- Photos RecyclerView -->
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/photos_grid_recyclerview"
+                        android:id="@+id/photos_recycler_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:scrollbars="none"
                         android:overScrollMode="never"
                         android:nestedScrollingEnabled="false"
                         android:layout_marginBottom="12dp"/>
+
+                    <!-- Add Photo Button -->
+                    <Button
+                        android:id="@+id/add_photo_button"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="+ Add Photo (Max 5)"
+                        android:textColor="@color/blue"
+                        android:backgroundTint="@color/white"
+                        android:textSize="14sp"
+                        android:padding="12dp"
+                        style="?attr/materialButtonOutlinedStyle"
+                        app:strokeColor="@color/blue"
+                        app:strokeWidth="1dp"/>
 
                 </LinearLayout>
 
