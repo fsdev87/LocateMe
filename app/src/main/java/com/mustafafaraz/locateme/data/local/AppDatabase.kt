@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.mustafafaraz.locateme.data.local.dao.ChatDao
 import com.mustafafaraz.locateme.data.local.dao.ItemDao
 import com.mustafafaraz.locateme.data.local.dao.MessageDao
 import com.mustafafaraz.locateme.data.local.dao.SyncQueueDao
 import com.mustafafaraz.locateme.data.local.dao.UserProfileDao
+import com.mustafafaraz.locateme.data.local.entity.ChatEntity
 import com.mustafafaraz.locateme.data.local.entity.ItemEntity
 import com.mustafafaraz.locateme.data.local.entity.MessageEntity
 import com.mustafafaraz.locateme.data.local.entity.SyncQueueEntity
@@ -18,9 +20,10 @@ import com.mustafafaraz.locateme.data.local.entity.UserProfileEntity
         ItemEntity::class,
         UserProfileEntity::class,
         MessageEntity::class,
-        SyncQueueEntity::class
+        SyncQueueEntity::class,
+        ChatEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun messageDao(): MessageDao
     abstract fun syncQueueDao(): SyncQueueDao
+    abstract fun chatDao(): ChatDao
 
     companion object {
         @Volatile

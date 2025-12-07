@@ -13,13 +13,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.mustafafaraz.locateme.data.api.RetrofitClient
+import com.mustafafaraz.locateme.data.repository.UserProfileRepository
 import com.mustafafaraz.locateme.utils.TokenManager
+import com.mustafafaraz.locateme.utils.NetworkUtils
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.coroutines.launch
 
 class Profile : AppCompatActivity() {
 
     private lateinit var tokenManager: TokenManager
+    private lateinit var userProfileRepository: UserProfileRepository
     private lateinit var profileAvatar: CircleImageView
     private lateinit var profileName: TextView
     private lateinit var profileEmail: TextView
@@ -33,8 +36,9 @@ class Profile : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
-        // Initialize TokenManager
+        // Initialize TokenManager and Repository
         tokenManager = TokenManager(this)
+        userProfileRepository = UserProfileRepository(this)
 
         // Initialize views
         initializeViews()
@@ -69,31 +73,47 @@ class Profile : AppCompatActivity() {
                 // Show loading
                 progressBar.visibility = View.VISIBLE
 
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) {
-                    Toast.makeText(this@Profile, "Please login", Toast.LENGTH_SHORT).show()
-                    navigateToLogin()
-                    return@launch
-                }
+                // Check if online
+                if (NetworkUtils.isOnline(this@Profile)) {
+                    // ONLINE: Fetch from API first
+                    val result = userProfileRepository.syncProfile()
 
-                val authHeader = "Bearer $token"
-                val response = RetrofitClient.apiService.getProfile(authHeader)
+                    result.onSuccess { user ->
+                        progressBar.visibility = View.GONE
+                        displayUserData(user)
+                        Log.d("Profile", "✅ Profile loaded from server")
+                    }.onFailure { error ->
+                        Log.e("Profile", "API failed, loading from cache: ${error.message}")
 
-                // Hide loading
-                progressBar.visibility = View.GONE
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val user = response.body()?.data
-                    user?.let { displayUserData(it) }
+                        // API failed, try loading from cache
+                        loadProfileFromCache()
+                    }
                 } else {
-                    Toast.makeText(this@Profile, "Failed to load profile", Toast.LENGTH_SHORT).show()
-                    Log.e("Profile", "Error: ${response.code()} - ${response.message()}")
+                    // OFFLINE: Load from cache
+                    Log.d("Profile", "📴 Offline mode - loading from cache")
+                    loadProfileFromCache()
                 }
             } catch (e: Exception) {
                 progressBar.visibility = View.GONE
                 Log.e("Profile", "Error loading profile", e)
-                Toast.makeText(this@Profile, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Profile, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private suspend fun loadProfileFromCache() {
+        val cachedUser = userProfileRepository.getUserProfileOnce()
+
+        progressBar.visibility = View.GONE
+
+        if (cachedUser != null) {
+            displayUserData(cachedUser)
+            if (!NetworkUtils.isOnline(this@Profile)) {
+                Toast.makeText(this@Profile, "Offline mode - showing cached profile", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            // No cached data and offline
+            Toast.makeText(this@Profile, "No cached data. Please connect to internet.", Toast.LENGTH_SHORT).show()
         }
     }
 

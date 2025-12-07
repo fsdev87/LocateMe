@@ -175,7 +175,7 @@ class Home : AppCompatActivity() {
 
         // Update current category and reload items
         currentCategory = category
-        syncItems()
+        loadItems()
     }
 
     private fun selectTab(position: Int) {
@@ -229,7 +229,7 @@ class Home : AppCompatActivity() {
                     val query = s.toString().trim()
                     currentSearch = if (query.isEmpty()) null else query
                     Log.d("Home", "Search query: $currentSearch")
-                    loadItemsFromCache()
+                    loadItems()
                 }
             }
 
@@ -237,54 +237,91 @@ class Home : AppCompatActivity() {
         })
     }
 
+    /**
+     * Load items - API first, cache as fallback
+     */
+    private fun loadItems() {
+        lifecycleScope.launch {
+            try {
+                progressBar.visibility = View.VISIBLE
+                emptyView.visibility = View.GONE
+                itemsRecyclerView.visibility = View.GONE
+
+                // Check if online
+                if (NetworkUtils.isOnline(this@Home)) {
+                    // ONLINE: Fetch from API
+                    val result = itemRepository.syncItems(
+                        type = currentType,
+                        category = currentCategory,
+                        search = currentSearch
+                    )
+
+                    result.onSuccess { items ->
+                        progressBar.visibility = View.GONE
+
+                        if (items.isEmpty()) {
+                            emptyView.visibility = View.VISIBLE
+                            itemsRecyclerView.visibility = View.GONE
+                            emptyView.text = "No items found"
+                        } else {
+                            emptyView.visibility = View.GONE
+                            itemsRecyclerView.visibility = View.VISIBLE
+                            itemAdapter.updateItems(items)
+                        }
+                        Log.d("Home", "✅ Loaded ${items.size} items from server")
+                    }.onFailure { error ->
+                        // API failed, fallback to cache
+                        Log.e("Home", "API failed, loading from cache: ${error.message}")
+                        loadItemsFromCache()
+                    }
+                } else {
+                    // OFFLINE: Load from cache
+                    Log.d("Home", "📴 Offline mode - loading from cache")
+                    loadItemsFromCache()
+                }
+            } catch (e: Exception) {
+                Log.e("Home", "Error loading items", e)
+                progressBar.visibility = View.GONE
+                emptyView.visibility = View.VISIBLE
+                emptyView.text = "Error loading items"
+            }
+        }
+    }
+
     private fun loadItemsFromCache() {
         lifecycleScope.launch {
             try {
-                // Show loading only if no cached data yet
-                if (itemAdapter.itemCount == 0) {
-                    progressBar.visibility = View.VISIBLE
-                    emptyView.visibility = View.GONE
-                    itemsRecyclerView.visibility = View.GONE
+                // Load from cache (one-time, not Flow)
+                val cachedItems = itemRepository.getAllItemsOnce()
+                Log.d("Home", "Loaded ${cachedItems.size} items from cache")
+
+                // Apply filters locally
+                val filteredItems = cachedItems.filter { item ->
+                    // Filter by type (LOST/FOUND)
+                    val typeMatch = currentType == null || item.type == currentType
+
+                    // Filter by category
+                    val categoryMatch = currentCategory == null || item.category == currentCategory
+
+                    // Filter by search query
+                    val searchMatch = currentSearch == null ||
+                            item.title.contains(currentSearch!!, ignoreCase = true) ||
+                            item.description.contains(currentSearch!!, ignoreCase = true) ||
+                            item.location.contains(currentSearch!!, ignoreCase = true)
+
+                    typeMatch && categoryMatch && searchMatch
                 }
 
-                // Load from cache (instant)
-                itemRepository.getAllItems().collect { cachedItems ->
-                    Log.d("Home", "Loaded ${cachedItems.size} items from cache")
+                progressBar.visibility = View.GONE
 
-                    // Apply filters locally
-                    val filteredItems = cachedItems.filter { item ->
-                        // Filter by type (LOST/FOUND)
-                        val typeMatch = currentType == null || item.type == currentType
-
-                        // Filter by category
-                        val categoryMatch = currentCategory == null || item.category == currentCategory
-
-                        // Filter by search query
-                        val searchMatch = currentSearch == null ||
-                                item.title.contains(currentSearch!!, ignoreCase = true) ||
-                                item.description.contains(currentSearch!!, ignoreCase = true) ||
-                                item.location.contains(currentSearch!!, ignoreCase = true)
-
-                        typeMatch && categoryMatch && searchMatch
-                    }
-
-                    progressBar.visibility = View.GONE
-
-                    if (filteredItems.isEmpty()) {
-                        emptyView.visibility = View.VISIBLE
-                        itemsRecyclerView.visibility = View.GONE
-
-                        // Show different message if offline
-                        if (!NetworkUtils.isOnline(this@Home)) {
-                            emptyView.text = "No cached items. Connect to internet to load."
-                        } else {
-                            emptyView.text = "No items found"
-                        }
-                    } else {
-                        emptyView.visibility = View.GONE
-                        itemsRecyclerView.visibility = View.VISIBLE
-                        itemAdapter.updateItems(filteredItems)
-                    }
+                if (filteredItems.isEmpty()) {
+                    emptyView.visibility = View.VISIBLE
+                    itemsRecyclerView.visibility = View.GONE
+                    emptyView.text = "No cached items. Connect to internet to load."
+                } else {
+                    emptyView.visibility = View.GONE
+                    itemsRecyclerView.visibility = View.VISIBLE
+                    itemAdapter.updateItems(filteredItems)
                 }
             } catch (e: Exception) {
                 Log.e("Home", "Error loading from cache", e)
@@ -296,33 +333,8 @@ class Home : AppCompatActivity() {
     }
 
     private fun syncItems() {
-        lifecycleScope.launch {
-            try {
-                // Sync from server in background
-                val result = itemRepository.syncItems(
-                    type = currentType,
-                    category = currentCategory,
-                    search = currentSearch
-                )
-
-                result.onSuccess {
-                    Log.d("Home", "✅ Items synced from server")
-                    // Cache updates automatically trigger Flow update
-                }.onFailure { error ->
-                    if (error.message?.contains("No internet") == true) {
-                        Log.d("Home", "📴 Offline mode - showing cached data")
-                        // Show subtle offline indicator
-                        if (itemAdapter.itemCount > 0) {
-                            Toast.makeText(this@Home, "Offline mode - showing cached items", Toast.LENGTH_SHORT).show()
-                        }
-                    } else {
-                        Log.e("Home", "Error syncing items: ${error.message}")
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("Home", "Sync error", e)
-            }
-        }
+        // This method is no longer needed, but keeping for compatibility
+        loadItems()
     }
 
     private fun setupBottomNavigation() {

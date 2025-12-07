@@ -14,9 +14,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mustafafaraz.locateme.adapter.ChatListAdapter
-import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.data.model.Chat
+import com.mustafafaraz.locateme.data.repository.ChatRepository
 import com.mustafafaraz.locateme.utils.TokenManager
+import com.mustafafaraz.locateme.utils.NetworkUtils
 import kotlinx.coroutines.launch
 
 class ChatList : AppCompatActivity() {
@@ -28,6 +29,7 @@ class ChatList : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var adapter: ChatListAdapter
     private lateinit var tokenManager: TokenManager
+    private lateinit var chatRepository: ChatRepository
     private val chatsList = mutableListOf<Chat>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +37,7 @@ class ChatList : AppCompatActivity() {
         setContentView(R.layout.activity_chat_list)
 
         tokenManager = TokenManager(this)
+        chatRepository = ChatRepository(this)
 
         initializeViews()
         setupRecyclerView()
@@ -74,34 +77,34 @@ class ChatList : AppCompatActivity() {
                 emptyState.visibility = View.GONE
                 chatsRecyclerView.visibility = View.GONE
 
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) {
-                    Toast.makeText(this@ChatList, "Please login", Toast.LENGTH_SHORT).show()
-                    finish()
-                    return@launch
-                }
+                // Check if online
+                if (NetworkUtils.isOnline(this@ChatList)) {
+                    // ONLINE: Fetch from API first
+                    val result = chatRepository.syncChats()
 
-                val authHeader = "Bearer $token"
-                val response = RetrofitClient.apiService.getUserChats(authHeader)
+                    result.onSuccess { chats ->
+                        progressBar.visibility = View.GONE
 
-                progressBar.visibility = View.GONE
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val chats = response.body()?.data ?: emptyList()
-
-                    if (chats.isEmpty()) {
-                        emptyState.visibility = View.VISIBLE
-                        chatsRecyclerView.visibility = View.GONE
-                    } else {
-                        emptyState.visibility = View.GONE
-                        chatsRecyclerView.visibility = View.VISIBLE
-                        chatsList.clear()
-                        chatsList.addAll(chats)
-                        adapter.notifyDataSetChanged()
+                        if (chats.isEmpty()) {
+                            emptyState.visibility = View.VISIBLE
+                            chatsRecyclerView.visibility = View.GONE
+                        } else {
+                            emptyState.visibility = View.GONE
+                            chatsRecyclerView.visibility = View.VISIBLE
+                            chatsList.clear()
+                            chatsList.addAll(chats)
+                            adapter.notifyDataSetChanged()
+                        }
+                        Log.d("ChatList", "✅ Loaded ${chats.size} chats from server")
+                    }.onFailure { error ->
+                        // API failed, load from cache
+                        Log.e("ChatList", "API failed, loading from cache: ${error.message}")
+                        loadChatsFromCache()
                     }
                 } else {
-                    Toast.makeText(this@ChatList, "Failed to load chats", Toast.LENGTH_SHORT).show()
-                    emptyState.visibility = View.VISIBLE
+                    // OFFLINE: Load from cache
+                    Log.d("ChatList", "📴 Offline mode - loading from cache")
+                    loadChatsFromCache()
                 }
             } catch (e: Exception) {
                 Log.e("ChatList", "Error loading chats", e)
@@ -110,6 +113,31 @@ class ChatList : AppCompatActivity() {
                 Toast.makeText(this@ChatList, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private suspend fun loadChatsFromCache() {
+        val cachedChats = chatRepository.getAllChatsOnce()
+
+        progressBar.visibility = View.GONE
+
+        if (cachedChats.isEmpty()) {
+            emptyState.visibility = View.VISIBLE
+            chatsRecyclerView.visibility = View.GONE
+            if (!NetworkUtils.isOnline(this@ChatList)) {
+                Toast.makeText(this@ChatList, "No cached chats. Connect to internet to load.", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            emptyState.visibility = View.GONE
+            chatsRecyclerView.visibility = View.VISIBLE
+            chatsList.clear()
+            chatsList.addAll(cachedChats)
+            adapter.notifyDataSetChanged()
+
+            if (!NetworkUtils.isOnline(this@ChatList)) {
+                Toast.makeText(this@ChatList, "Offline mode - showing cached chats", Toast.LENGTH_SHORT).show()
+            }
+        }
+        Log.d("ChatList", "Loaded ${cachedChats.size} chats from cache")
     }
 
     private fun openChat(chat: Chat) {

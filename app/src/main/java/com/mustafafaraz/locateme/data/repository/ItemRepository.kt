@@ -36,6 +36,13 @@ class ItemRepository(private val context: Context) {
     }
 
     /**
+     * Get all items once (non-Flow, for one-time fetch)
+     */
+    suspend fun getAllItemsOnce(): List<Item> {
+        return itemDao.getAllItemsList().map { it.toItem() }
+    }
+
+    /**
      * Sync items from server and update cache
      */
     suspend fun syncItems(type: String? = null, category: String? = null, search: String? = null): Result<List<Item>> {
@@ -219,4 +226,3 @@ class ItemRepository(private val context: Context) {
         Log.d(TAG, "✅ Old cache cleaned")
     }
 }
-

@@ -74,10 +74,10 @@ class ChatScreen : AppCompatActivity() {
         val itemId = intent.getIntExtra("item_id", -1)
 
         if (chatId != -1) {
-            // Existing chat - load messages
+            // Existing chat - subscribe to message Flow and sync
             loadChatDetails()
-            loadMessagesFromCache()
-            syncMessages()
+            subscribeToMessages()
+            syncMessagesFromServer()
         } else if (itemId != -1) {
             // New chat from item
             createChatFromItem(itemId)
@@ -141,7 +141,8 @@ class ChatScreen : AppCompatActivity() {
                         chatId = it.id
                         otherUserId = it.otherUserId
                         userName.text = it.otherUserName
-                        loadMessages()
+                        subscribeToMessages()
+                        syncMessagesFromServer()
                         startAutoRefresh()
                     }
                 } else {
@@ -180,52 +181,25 @@ class ChatScreen : AppCompatActivity() {
         }
     }
 
-    private fun loadMessagesFromCache() {
+    private fun subscribeToMessages() {
         lifecycleScope.launch {
-            // Subscribe to message Flow - auto-updates when cache changes
-            messageRepository.getMessagesByChatId(chatId).collect { cachedMessages ->
-                adapter.updateMessages(cachedMessages)
-                if (cachedMessages.isNotEmpty()) {
+            messageRepository.getMessagesByChatId(chatId).collect { newMessages ->
+                adapter.updateMessages(newMessages)
+                if (newMessages.isNotEmpty()) {
                     scrollToBottom()
                 }
+                Log.d("ChatScreen", "Messages updated from cache: ${newMessages.size}")
             }
         }
     }
 
-    private fun syncMessages() {
-        lifecycleScope.launch {
-            val result = messageRepository.syncMessages(chatId)
-            result.onFailure { error ->
-                if (error.message?.contains("No internet") == true) {
-                    // Offline mode - showing cached messages
-                    Log.d("ChatScreen", "Offline mode - showing cached messages")
-                }
-            }
-        }
-    }
-
-    private fun loadMessages() {
+    private fun syncMessagesFromServer() {
         lifecycleScope.launch {
             try {
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) return@launch
-
-                val authHeader = "Bearer $token"
-                val response = RetrofitClient.apiService.getChatMessages(authHeader, chatId)
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val newMessages = response.body()?.data ?: emptyList()
-
-                    if (newMessages.isNotEmpty()) {
-                        adapter.updateMessages(newMessages)
-                        scrollToBottom()
-
-                        // Mark messages as read
-                        markMessagesAsRead()
-                    }
-                }
+                // Initial load of messages from server
+                messageRepository.syncMessages(chatId)
             } catch (e: Exception) {
-                Log.e("ChatScreen", "Error loading messages", e)
+                Log.e("ChatScreen", "Error syncing messages", e)
             }
         }
     }
@@ -389,7 +363,10 @@ class ChatScreen : AppCompatActivity() {
     private fun refreshMessages() {
         lifecycleScope.launch {
             try {
-                messageRepository.syncMessages(chatId)
+                // Refresh messages from server - Flow will auto-update UI
+                if (NetworkUtils.isOnline(this@ChatScreen)) {
+                    messageRepository.syncMessages(chatId)
+                }
             } catch (e: Exception) {
                 Log.e("ChatScreen", "Error refreshing messages", e)
             } finally {
