@@ -158,7 +158,7 @@ class Home : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.chat_icon).setOnClickListener {
-            val intent = Intent(this, ChatScreen::class.java)
+            val intent = Intent(this, ChatList::class.java)
             startActivity(intent)
         }
     }

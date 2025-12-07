@@ -81,6 +81,9 @@ dependencies {
     // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
+    // CircleImageView
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+
     // SwipeRefreshLayout
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }

@@ -37,6 +37,11 @@ class ItemDetails : AppCompatActivity() {
         val favoriteButton = findViewById<ImageView>(R.id.favorite_button)
         val shareButton = findViewById<ImageView>(R.id.share_button)
         val bookmarkButton = findViewById<ImageView>(R.id.bookmark_button)
+        val reporterFullName = findViewById<TextView>(R.id.reporter_full_name)
+        val reporterStudentId = findViewById<TextView>(R.id.reporter_student_id)
+        val reporterBatch = findViewById<TextView>(R.id.reporter_batch)
+        val reporterDepartment = findViewById<TextView>(R.id.reporter_department)
+
 
         // Set content
         titleView.text = itemTitle
