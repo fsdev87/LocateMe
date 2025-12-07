@@ -179,7 +179,25 @@ class Profile : AppCompatActivity() {
     private fun handleSignOut() {
         lifecycleScope.launch {
             try {
-                // Clear all auth data from DataStore
+                // First, call backend to clear FCM token
+                val token = tokenManager.getToken()
+                if (!token.isNullOrEmpty()) {
+                    try {
+                        val authHeader = "Bearer $token"
+                        val response = RetrofitClient.apiService.logout(authHeader)
+
+                        if (response.isSuccessful) {
+                            Log.d("Profile", "✅ FCM token cleared from backend")
+                        } else {
+                            Log.e("Profile", "❌ Failed to clear FCM token: ${response.code()}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("Profile", "❌ Error calling logout API", e)
+                        // Continue with local logout even if backend call fails
+                    }
+                }
+
+                // Then clear all local auth data
                 tokenManager.clearAllData()
 
                 // Show success message

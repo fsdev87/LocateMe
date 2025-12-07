@@ -22,8 +22,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mustafafaraz.locateme.adapter.ChatMessagesAdapter
 import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.data.model.ChatMessage
-import com.mustafafaraz.locateme.data.model.SendMessageRequest
+import com.mustafafaraz.locateme.data.repository.MessageRepository
 import com.mustafafaraz.locateme.utils.TokenManager
+import com.mustafafaraz.locateme.utils.NetworkUtils
 import com.mustafafaraz.locateme.services.MyFirebaseMessagingService
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -31,6 +32,7 @@ import java.io.ByteArrayOutputStream
 class ChatScreen : AppCompatActivity() {
 
     private lateinit var tokenManager: TokenManager
+    private lateinit var messageRepository: MessageRepository
     private lateinit var backButton: ImageView
     private lateinit var userName: TextView
     private lateinit var messagesRecyclerView: RecyclerView
@@ -45,7 +47,7 @@ class ChatScreen : AppCompatActivity() {
     private val messages = mutableListOf<ChatMessage>()
 
     private val handler = Handler(Looper.getMainLooper())
-    private val refreshInterval = 3000L // Refresh every 3 seconds
+    private val refreshInterval = 3000L
     private var isRefreshing = false
 
     companion object {
@@ -57,6 +59,7 @@ class ChatScreen : AppCompatActivity() {
         setContentView(R.layout.activity_chat_screen)
 
         tokenManager = TokenManager(this)
+        messageRepository = MessageRepository(this)
 
         // Get current user ID
         lifecycleScope.launch {
@@ -73,7 +76,8 @@ class ChatScreen : AppCompatActivity() {
         if (chatId != -1) {
             // Existing chat - load messages
             loadChatDetails()
-            loadMessages()
+            loadMessagesFromCache()
+            syncMessages()
         } else if (itemId != -1) {
             // New chat from item
             createChatFromItem(itemId)
@@ -176,6 +180,30 @@ class ChatScreen : AppCompatActivity() {
         }
     }
 
+    private fun loadMessagesFromCache() {
+        lifecycleScope.launch {
+            // Subscribe to message Flow - auto-updates when cache changes
+            messageRepository.getMessagesByChatId(chatId).collect { cachedMessages ->
+                adapter.updateMessages(cachedMessages)
+                if (cachedMessages.isNotEmpty()) {
+                    scrollToBottom()
+                }
+            }
+        }
+    }
+
+    private fun syncMessages() {
+        lifecycleScope.launch {
+            val result = messageRepository.syncMessages(chatId)
+            result.onFailure { error ->
+                if (error.message?.contains("No internet") == true) {
+                    // Offline mode - showing cached messages
+                    Log.d("ChatScreen", "Offline mode - showing cached messages")
+                }
+            }
+        }
+    }
+
     private fun loadMessages() {
         lifecycleScope.launch {
             try {
@@ -207,32 +235,32 @@ class ChatScreen : AppCompatActivity() {
         if (messageText.isEmpty()) return
 
         lifecycleScope.launch {
-            try {
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) return@launch
+            val result = messageRepository.sendMessage(
+                chatId = chatId,
+                type = "TEXT",
+                content = messageText,
+                currentUserId = currentUserId
+            )
 
-                val authHeader = "Bearer $token"
-                val request = SendMessageRequest(
-                    chatId = chatId,
-                    type = "TEXT",
-                    content = messageText
-                )
+            result.onSuccess {
+                // Message already showing in UI from Flow
+                messageInput.text.clear()
+                scrollToBottom()
 
-                val response = RetrofitClient.apiService.sendMessage(authHeader, request)
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val sentMessage = response.body()?.data
-                    sentMessage?.let {
-                        adapter.addMessage(it)
-                        scrollToBottom()
-                        messageInput.text.clear()
-                    }
-                } else {
-                    Toast.makeText(this@ChatScreen, "Failed to send message", Toast.LENGTH_SHORT).show()
+                // Show offline indicator if needed
+                if (!NetworkUtils.isOnline(this@ChatScreen)) {
+                    Toast.makeText(
+                        this@ChatScreen,
+                        "Message queued. Will send when online.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-            } catch (e: Exception) {
-                Log.e("ChatScreen", "Error sending message", e)
-                Toast.makeText(this@ChatScreen, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }.onFailure { error ->
+                Toast.makeText(
+                    this@ChatScreen,
+                    "Error: ${error.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -256,31 +284,34 @@ class ChatScreen : AppCompatActivity() {
     private fun sendImageMessage(imageUri: Uri) {
         lifecycleScope.launch {
             try {
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) return@launch
-
                 // Convert image to base64
                 val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
                 val resizedBitmap = resizeBitmap(bitmap, 1024, 1024)
                 val base64Image = bitmapToBase64(resizedBitmap)
 
-                val authHeader = "Bearer $token"
-                val request = SendMessageRequest(
+                val result = messageRepository.sendMessage(
                     chatId = chatId,
                     type = "IMAGE",
-                    messageImage = base64Image
+                    messageImage = base64Image,
+                    currentUserId = currentUserId
                 )
 
-                val response = RetrofitClient.apiService.sendMessage(authHeader, request)
+                result.onSuccess {
+                    scrollToBottom()
 
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val sentMessage = response.body()?.data
-                    sentMessage?.let {
-                        adapter.addMessage(it)
-                        scrollToBottom()
+                    if (!NetworkUtils.isOnline(this@ChatScreen)) {
+                        Toast.makeText(
+                            this@ChatScreen,
+                            "Image queued. Will send when online.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                } else {
-                    Toast.makeText(this@ChatScreen, "Failed to send image", Toast.LENGTH_SHORT).show()
+                }.onFailure { error ->
+                    Toast.makeText(
+                        this@ChatScreen,
+                        "Error: ${error.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } catch (e: Exception) {
                 Log.e("ChatScreen", "Error sending image", e)
@@ -363,30 +394,7 @@ class ChatScreen : AppCompatActivity() {
     private fun refreshMessages() {
         lifecycleScope.launch {
             try {
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) {
-                    isRefreshing = false
-                    return@launch
-                }
-
-                val authHeader = "Bearer $token"
-                val response = RetrofitClient.apiService.getChatMessages(authHeader, chatId)
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val newMessages = response.body()?.data ?: emptyList()
-
-                    // Only update if there are new messages
-                    if (newMessages.size > messages.size) {
-                        val wasAtBottom = isAtBottom()
-                        adapter.updateMessages(newMessages)
-
-                        if (wasAtBottom) {
-                            scrollToBottom()
-                        }
-
-                        markMessagesAsRead()
-                    }
-                }
+                messageRepository.syncMessages(chatId)
             } catch (e: Exception) {
                 Log.e("ChatScreen", "Error refreshing messages", e)
             } finally {

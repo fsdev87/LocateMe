@@ -153,4 +153,10 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: UpdateFcmTokenRequest
     ): Response<ApiResponse<Unit>>
+
+    // Logout Endpoint
+    @POST("api/auth/logout")
+    suspend fun logout(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<Unit>>
 }
