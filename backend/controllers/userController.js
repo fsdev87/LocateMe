@@ -72,10 +72,10 @@ exports.updateProfile = async (req, res) => {
       values.push(section);
     }
 
-    // Handle profile picture upload
-    if (req.file) {
+    // Handle profile picture (base64 converted to file path)
+    if (req.savedProfilePic) {
       updateFields.push("profile_pic = ?");
-      values.push(req.file.path);
+      values.push(req.savedProfilePic);
     }
 
     if (updateFields.length === 0) {

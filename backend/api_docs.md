@@ -5,6 +5,7 @@ Base URL: `https://your-app.onrender.com/api`
 ## Authentication
 
 All protected routes require JWT token in header:
+
 ```
 Authorization: Bearer <your_jwt_token>
 ```
@@ -14,9 +15,11 @@ Authorization: Bearer <your_jwt_token>
 ## 🔐 Authentication Routes
 
 ### POST `/auth/signup`
+
 Register a new user
 
 **Body:**
+
 ```json
 {
   "fullName": "John Doe",
@@ -30,6 +33,7 @@ Register a new user
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -47,9 +51,11 @@ Register a new user
 ```
 
 ### POST `/auth/login`
+
 Login user
 
 **Body:**
+
 ```json
 {
   "email": "john@student.fast.edu.pk",
@@ -60,11 +66,13 @@ Login user
 **Response:** Same as signup
 
 ### PUT `/auth/fcm-token` 🔒
+
 Update FCM token for push notifications
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Body:**
+
 ```json
 {
   "fcmToken": "your-fcm-device-token"
@@ -76,9 +84,11 @@ Update FCM token for push notifications
 ## 👤 User Routes
 
 ### GET `/users/profile` 🔒
+
 Get current user profile
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -94,19 +104,27 @@ Get current user profile
 ```
 
 ### PUT `/users/profile` 🔒
+
 Update user profile (with optional profile picture)
 
-**Body:** (multipart/form-data)
-```
-fullName: "John Updated"
-batch: "2024"
-profilePic: <file>
+**Body:** (application/json)
+
+```json
+{
+  "fullName": "John Updated",
+  "batch": "2024",
+  "profilePic": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+}
 ```
 
+**Note:** `profilePic` is optional and should be a base64 encoded image string (with or without data URI prefix)
+
 ### PUT `/users/change-password` 🔒
+
 Change password
 
 **Body:**
+
 ```json
 {
   "currentPassword": "old123",
@@ -115,6 +133,7 @@ Change password
 ```
 
 ### GET `/users/:id` 🔒
+
 Get user by ID (to view other users' profiles)
 
 ---
@@ -122,9 +141,11 @@ Get user by ID (to view other users' profiles)
 ## 📦 Item Routes
 
 ### GET `/items` 🔒
+
 Get all items (home feed)
 
 **Query Parameters:**
+
 - `type` - Filter by LOST or FOUND
 - `category` - Filter by ELECTRONICS, BAGS, KEYS, CLOTHING, OTHER
 - `status` - Filter by ACTIVE, RESOLVED, EXPIRED
@@ -135,41 +156,64 @@ Get all items (home feed)
 **Example:** `/items?type=LOST&category=ELECTRONICS&search=phone`
 
 ### POST `/items` 🔒
+
 Create new item
 
-**Body:** (multipart/form-data)
-```
-title: "Lost iPhone 13"
-description: "Black iPhone 13, lost near library"
-category: "ELECTRONICS"
-location: "Library Building"
-type: "LOST"
-expiresAt: "2025-12-31T23:59:59Z" (optional)
-itemImages: <file1>, <file2>, ... (max 5)
+**Body:** (application/json)
+
+```json
+{
+  "title": "Lost iPhone 13",
+  "description": "Black iPhone 13, lost near library",
+  "category": "ELECTRONICS",
+  "location": "Library Building",
+  "type": "LOST",
+  "expiresAt": "2025-12-31T23:59:59Z",
+  "itemImages": [
+    "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
+    "data:image/png;base64,iVBORw0KGgoAAAANS..."
+  ]
+}
 ```
 
+**Note:** `itemImages` is optional, max 5 images, each should be a base64 encoded image string
+
 ### GET `/items/:id` 🔒
+
 Get item by ID
 
 ### GET `/items/my-items` 🔒
+
 Get current user's items
 
 **Query Parameters:**
+
 - `type` - Filter by LOST or FOUND
 - `status` - Filter by ACTIVE, RESOLVED, EXPIRED
 
 ### PUT `/items/:id` 🔒
+
 Update item
 
-**Body:** (multipart/form-data) - Same as create, all fields optional
+**Body:** (application/json) - Same as create, all fields optional
+
+```json
+{
+  "title": "Updated Title",
+  "itemImages": ["data:image/jpeg;base64,..."]
+}
+```
 
 ### DELETE `/items/:id` 🔒
+
 Delete item (soft delete)
 
 ### POST `/items/save` 🔒
+
 Save an item
 
 **Body:**
+
 ```json
 {
   "itemId": 123
@@ -177,9 +221,11 @@ Save an item
 ```
 
 ### DELETE `/items/save/:itemId` 🔒
+
 Unsave an item
 
 ### GET `/items/saved` 🔒
+
 Get all saved items
 
 ---
@@ -187,9 +233,11 @@ Get all saved items
 ## 💬 Chat Routes
 
 ### GET `/chats` 🔒
+
 Get all user's chats
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -209,9 +257,11 @@ Get all user's chats
 ```
 
 ### POST `/chats` 🔒
+
 Create or get existing chat
 
 **Body:**
+
 ```json
 {
   "otherUserId": 2
@@ -219,9 +269,11 @@ Create or get existing chat
 ```
 
 ### GET `/chats/:id` 🔒
+
 Get chat by ID
 
 ### DELETE `/chats/:id` 🔒
+
 Delete chat
 
 ---
@@ -229,16 +281,20 @@ Delete chat
 ## 📨 Message Routes
 
 ### GET `/messages/chat/:chatId` 🔒
+
 Get messages for a chat
 
 **Query Parameters:**
+
 - `limit` - Default: 50
 - `offset` - Default: 0
 
 ### POST `/messages` 🔒
+
 Send message
 
-**For TEXT message:**
+**For TEXT message:** (application/json)
+
 ```json
 {
   "chatId": 1,
@@ -247,23 +303,32 @@ Send message
 }
 ```
 
-**For IMAGE message:** (multipart/form-data)
-```
-chatId: 1
-type: "IMAGE"
-messageImage: <file>
+**For IMAGE message:** (application/json)
+
+```json
+{
+  "chatId": 1,
+  "type": "IMAGE",
+  "messageImage": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+}
 ```
 
+**Note:** `messageImage` should be a base64 encoded image string
+
 ### PUT `/messages/chat/:chatId/read` 🔒
+
 Mark all messages in chat as read
 
 ### DELETE `/messages/:id` 🔒
+
 Delete message (sender only)
 
 ### GET `/messages/unread-count` 🔒
+
 Get unread message count
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -278,25 +343,32 @@ Get unread message count
 ## 🔔 Notification Routes
 
 ### GET `/notifications` 🔒
+
 Get all notifications
 
 **Query Parameters:**
+
 - `limit` - Default: 50
 - `offset` - Default: 0
 
 ### GET `/notifications/unread-count` 🔒
+
 Get unread notification count
 
 ### PUT `/notifications/:id/read` 🔒
+
 Mark notification as read
 
 ### PUT `/notifications/read-all` 🔒
+
 Mark all notifications as read
 
 ### DELETE `/notifications/:id` 🔒
+
 Delete notification
 
 ### DELETE `/notifications` 🔒
+
 Delete all notifications
 
 ---
@@ -314,6 +386,7 @@ Users can update status via PUT `/items/:id`
 ## 🚀 Response Format
 
 ### Success Response
+
 ```json
 {
   "success": true,
@@ -323,6 +396,7 @@ Users can update status via PUT `/items/:id`
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
@@ -336,12 +410,30 @@ Users can update status via PUT `/items/:id`
 ## 📝 Notes
 
 - All timestamps are in ISO 8601 format (UTC)
-- Image uploads are limited to 5MB per file
+- **Images are sent as base64 encoded strings** (with or without data URI prefix like `data:image/jpeg;base64,`)
+- Base64 image size should not exceed 5MB when decoded
 - Items can have maximum 5 images
+- Supported image formats: JPEG, PNG, GIF
 - Profile pictures are stored in `/uploads/profiles/`
 - Item images are stored in `/uploads/items/`
 - Message images are stored in `/uploads/messages/`
 - All image URLs are returned as full URLs with server domain
+
+**Base64 Image Example:**
+
+```json
+{
+  "profilePic": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD..."
+}
+```
+
+Or without data URI:
+
+```json
+{
+  "profilePic": "/9j/4AAQSkZJRgABAQEAYABgAAD..."
+}
+```
 
 ---
 

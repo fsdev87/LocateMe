@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const authMiddleware = require("../middleware/auth");
-const { uploadProfile } = require("../middleware/upload");
+const { processProfilePic } = require("../middleware/upload");
 
 // All routes require authentication
 router.use(authMiddleware);
@@ -12,7 +12,7 @@ router.use(authMiddleware);
 router.get("/profile", userController.getProfile);
 
 // Update profile (with optional profile picture)
-router.put("/profile", uploadProfile, userController.updateProfile);
+router.put("/profile", processProfilePic, userController.updateProfile);
 
 // Change password
 router.put("/change-password", userController.changePassword);

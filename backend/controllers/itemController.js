@@ -50,10 +50,10 @@ exports.createItem = async (req, res) => {
       });
     }
 
-    // Handle image uploads (max 5 images)
+    // Handle image uploads (max 5 images from base64)
     let imageUrls = [];
-    if (req.files && req.files.length > 0) {
-      imageUrls = req.files.map((file) => file.path);
+    if (req.savedItemImages && req.savedItemImages.length > 0) {
+      imageUrls = req.savedItemImages;
     }
 
     // Insert item
@@ -309,11 +309,10 @@ exports.updateItem = async (req, res) => {
       values.push(expiresAt);
     }
 
-    // Handle new image uploads
-    if (req.files && req.files.length > 0) {
-      const newImageUrls = req.files.map((file) => file.path);
+    // Handle new image uploads (base64 converted to file paths)
+    if (req.savedItemImages && req.savedItemImages.length > 0) {
       updateFields.push("image_urls = ?");
-      values.push(JSON.stringify(newImageUrls));
+      values.push(JSON.stringify(req.savedItemImages));
     }
 
     if (updateFields.length === 0) {

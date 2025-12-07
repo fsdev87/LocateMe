@@ -64,13 +64,13 @@ exports.sendMessage = async (req, res) => {
       }
       messageContent = content;
     } else if (type === "IMAGE") {
-      if (!req.file) {
+      if (!req.savedMessageImage) {
         return res.status(400).json({
           success: false,
-          message: "Image file is required for image messages",
+          message: "Image is required for image messages",
         });
       }
-      mediaUrl = req.file.path;
+      mediaUrl = req.savedMessageImage;
     }
 
     // Insert message

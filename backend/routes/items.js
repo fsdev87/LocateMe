@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const itemController = require("../controllers/itemController");
 const authMiddleware = require("../middleware/auth");
-const { uploadItemImages } = require("../middleware/upload");
+const { processItemImages } = require("../middleware/upload");
 
 // All routes require authentication
 router.use(authMiddleware);
@@ -21,10 +21,10 @@ router.get("/saved", itemController.getSavedItems);
 router.get("/:id", itemController.getItemById);
 
 // Create new item
-router.post("/", uploadItemImages, itemController.createItem);
+router.post("/", processItemImages, itemController.createItem);
 
 // Update item
-router.put("/:id", uploadItemImages, itemController.updateItem);
+router.put("/:id", processItemImages, itemController.updateItem);
 
 // Delete item
 router.delete("/:id", itemController.deleteItem);

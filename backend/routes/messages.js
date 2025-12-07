@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const messageController = require("../controllers/messageController");
 const authMiddleware = require("../middleware/auth");
-const { uploadMessageImage } = require("../middleware/upload");
+const { processMessageImage } = require("../middleware/upload");
 
 // All routes require authentication
 router.use(authMiddleware);
@@ -15,7 +15,7 @@ router.get("/unread-count", messageController.getUnreadCount);
 router.get("/chat/:chatId", messageController.getChatMessages);
 
 // Send message (text or image)
-router.post("/", uploadMessageImage, messageController.sendMessage);
+router.post("/", processMessageImage, messageController.sendMessage);
 
 // Mark messages as read
 router.put("/chat/:chatId/read", messageController.markMessagesAsRead);

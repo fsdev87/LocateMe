@@ -1,4 +1,3 @@
-const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
@@ -21,60 +20,192 @@ const createUploadDirs = () => {
 // Create directories on startup
 createUploadDirs();
 
-createUploadDirs();
+/**
+ * Decode base64 string and determine image type
+ * @param {string} base64String - Base64 encoded image string
+ * @returns {Object} - { buffer: Buffer, extension: string, mimeType: string }
+ */
+const decodeBase64Image = (base64String) => {
+  // Check if base64 string includes data URI prefix
+  let base64Data = base64String;
+  let mimeType = null;
 
-// Storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Determine destination based on file field name
-    let uploadPath = "uploads/";
-    if (file.fieldname === "profilePic") {
-      uploadPath += "profiles/";
-    } else if (file.fieldname === "itemImages") {
-      uploadPath += "items/";
-    } else if (file.fieldname === "messageImage") {
-      uploadPath += "messages/";
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-randomstring.extension
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + "-" + uniqueSuffix + ext);
-  },
-});
+  // Extract MIME type and actual base64 data if data URI format
+  const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+  if (matches && matches.length === 3) {
+    mimeType = matches[1];
+    base64Data = matches[2];
+  }
 
-// File filter - only allow images
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+  // Decode base64 to buffer
+  const buffer = Buffer.from(base64Data, "base64");
 
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
+  // Determine image type from MIME type or buffer signature
+  let extension = ".jpg"; // default
+  if (mimeType) {
+    if (mimeType === "image/png") extension = ".png";
+    else if (mimeType === "image/gif") extension = ".gif";
+    else if (mimeType === "image/jpeg" || mimeType === "image/jpg")
+      extension = ".jpg";
   } else {
-    cb(
-      new Error("Invalid file type. Only JPEG, PNG and GIF are allowed."),
-      false
-    );
+    // Fallback: detect from buffer signature
+    if (buffer[0] === 0x89 && buffer[1] === 0x50) extension = ".png";
+    else if (buffer[0] === 0x47 && buffer[1] === 0x49) extension = ".gif";
+  }
+
+  return {
+    buffer,
+    extension,
+    mimeType: mimeType || "image/jpeg",
+  };
+};
+
+/**
+ * Validate image size and type
+ * @param {Buffer} buffer - Image buffer
+ * @param {string} mimeType - MIME type
+ * @returns {Object} - { valid: boolean, error: string }
+ */
+const validateImage = (buffer, mimeType) => {
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  if (!allowedTypes.includes(mimeType)) {
+    return {
+      valid: false,
+      error: "Invalid file type. Only JPEG, PNG and GIF are allowed.",
+    };
+  }
+
+  if (buffer.length > maxSize) {
+    return {
+      valid: false,
+      error: "File size exceeds 5MB limit.",
+    };
+  }
+
+  return { valid: true };
+};
+
+/**
+ * Save base64 image to disk
+ * @param {string} base64String - Base64 encoded image
+ * @param {string} uploadDir - Directory to save (profiles/items/messages)
+ * @param {string} fieldName - Field name for filename prefix
+ * @returns {Promise<string>} - Saved file path
+ */
+const saveBase64Image = async (base64String, uploadDir, fieldName) => {
+  try {
+    // Decode base64
+    const { buffer, extension, mimeType } = decodeBase64Image(base64String);
+
+    // Validate image
+    const validation = validateImage(buffer, mimeType);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    // Generate unique filename
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const filename = `${fieldName}-${uniqueSuffix}${extension}`;
+    const uploadPath = path.join("uploads", uploadDir);
+    const filePath = path.join(uploadPath, filename);
+
+    // Ensure directory exists
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+
+    // Write file to disk
+    await fs.promises.writeFile(filePath, buffer);
+
+    // Return path in consistent format (with forward slashes)
+    return filePath.replace(/\\/g, "/");
+  } catch (error) {
+    throw new Error(`Failed to save image: ${error.message}`);
   }
 };
 
-// Multer configuration
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-});
+/**
+ * Middleware to handle base64 profile picture
+ */
+const processProfilePic = async (req, res, next) => {
+  try {
+    if (req.body.profilePic) {
+      const filePath = await saveBase64Image(
+        req.body.profilePic,
+        "profiles",
+        "profilePic"
+      );
+      req.savedProfilePic = filePath;
+    }
+    next();
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
-// Upload configurations for different routes
-const uploadProfile = upload.single("profilePic");
-const uploadItemImages = upload.array("itemImages", 5); // Max 5 images
-const uploadMessageImage = upload.single("messageImage");
+/**
+ * Middleware to handle base64 item images (array)
+ */
+const processItemImages = async (req, res, next) => {
+  try {
+    if (req.body.itemImages && Array.isArray(req.body.itemImages)) {
+      if (req.body.itemImages.length > 5) {
+        return res.status(400).json({
+          success: false,
+          message: "Maximum 5 images allowed",
+        });
+      }
+
+      const savedPaths = [];
+      for (const base64Image of req.body.itemImages) {
+        const filePath = await saveBase64Image(
+          base64Image,
+          "items",
+          "itemImage"
+        );
+        savedPaths.push(filePath);
+      }
+      req.savedItemImages = savedPaths;
+    }
+    next();
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Middleware to handle base64 message image
+ */
+const processMessageImage = async (req, res, next) => {
+  try {
+    if (req.body.messageImage) {
+      const filePath = await saveBase64Image(
+        req.body.messageImage,
+        "messages",
+        "messageImage"
+      );
+      req.savedMessageImage = filePath;
+    }
+    next();
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
-  uploadProfile,
-  uploadItemImages,
-  uploadMessageImage,
+  processProfilePic,
+  processItemImages,
+  processMessageImage,
+  saveBase64Image, // Export for direct use if needed
 };
