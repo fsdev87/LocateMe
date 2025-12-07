@@ -146,7 +146,8 @@ class Profile : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.quick_messages).setOnClickListener {
-            Toast.makeText(this, "Messages clicked", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, ChatList::class.java)
+            startActivity(intent)
         }
 
         findViewById<LinearLayout>(R.id.quick_settings).setOnClickListener {
