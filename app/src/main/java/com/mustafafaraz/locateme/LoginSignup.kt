@@ -2,9 +2,11 @@ package com.mustafafaraz.locateme
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +30,7 @@ class LoginSignup : AppCompatActivity() {
     private lateinit var username: EditText
     private lateinit var passwordLabel: TextView
     private lateinit var password: EditText
+    private lateinit var togglePassword: ImageView
 
     // Signup only fields
     private lateinit var fullNameLabel: TextView
@@ -42,6 +45,7 @@ class LoginSignup : AppCompatActivity() {
     private lateinit var section: EditText
 
     private var isLoginMode = true
+    private var isPasswordVisible = false
     private lateinit var tokenManager: TokenManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +57,7 @@ class LoginSignup : AppCompatActivity() {
 
         initializeViews()
         setupToggleListeners()
+        setupPasswordToggle()
     }
 
     private fun initializeViews() {
@@ -66,6 +71,7 @@ class LoginSignup : AppCompatActivity() {
         username = findViewById(R.id.username)
         passwordLabel = findViewById(R.id.password_label)
         password = findViewById(R.id.password)
+        togglePassword = findViewById(R.id.toggle_password)
 
         // Signup only fields
         fullNameLabel = findViewById(R.id.full_name_label)
@@ -78,6 +84,21 @@ class LoginSignup : AppCompatActivity() {
         department = findViewById(R.id.department)
         sectionLabel = findViewById(R.id.section_label)
         section = findViewById(R.id.section)
+    }
+
+    private fun setupPasswordToggle() {
+        togglePassword.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            if (isPasswordVisible) {
+                password.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                togglePassword.setImageResource(R.drawable.ic_visibility)
+            } else {
+                password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                togglePassword.setImageResource(R.drawable.ic_visibility_off)
+            }
+            // Move cursor to end of text
+            password.setSelection(password.text.length)
+        }
     }
 
     private fun setupToggleListeners() {

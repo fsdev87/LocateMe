@@ -318,19 +318,53 @@ exports.deleteAccount = async (req, res) => {
       });
     }
 
-    // Soft delete user account
+    console.log("[deleteAccount] Starting account deletion process...");
+
+    // Soft delete all user's items
+    await pool.execute(
+      "UPDATE items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
+      [userId]
+    );
+    console.log("[deleteAccount] User items deleted");
+
+    // Soft delete all saved items by this user
+    await pool.execute(
+      "UPDATE saved_items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
+      [userId]
+    );
+    console.log("[deleteAccount] Saved items deleted");
+
+    // Soft delete all chats where user is a participant
+    await pool.execute(
+      "UPDATE chats SET deleted_at = CURRENT_TIMESTAMP WHERE (user1_id = ? OR user2_id = ?) AND deleted_at IS NULL",
+      [userId, userId]
+    );
+    console.log("[deleteAccount] Chats deleted");
+
+    // Soft delete all messages sent or received by this user
+    await pool.execute(
+      "UPDATE messages SET deleted_at = CURRENT_TIMESTAMP WHERE (sender_id = ? OR receiver_id = ?) AND deleted_at IS NULL",
+      [userId, userId]
+    );
+    console.log("[deleteAccount] Messages deleted");
+
+    // Soft delete all notifications for this user
+    await pool.execute(
+      "UPDATE notifications SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
+      [userId]
+    );
+    console.log("[deleteAccount] Notifications deleted");
+
+    // Finally, soft delete the user account
     await pool.execute(
       "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
       [userId]
     );
+    console.log("[deleteAccount] User account deleted");
 
-    // Also soft delete all user's items
-    await pool.execute(
-      "UPDATE items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?",
-      [userId]
+    console.log(
+      "[deleteAccount] Account and all related data deleted successfully"
     );
-
-    console.log("[deleteAccount] Account deleted successfully");
 
     res.status(200).json({
       success: true,

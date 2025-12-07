@@ -3,6 +3,7 @@ package com.mustafafaraz.locateme
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -21,10 +22,17 @@ class Settings : AppCompatActivity() {
     private lateinit var currentPassword: EditText
     private lateinit var newPassword: EditText
     private lateinit var confirmPassword: EditText
+    private lateinit var toggleCurrentPassword: ImageView
+    private lateinit var toggleNewPassword: ImageView
+    private lateinit var toggleConfirmPassword: ImageView
     private lateinit var changePasswordButton: Button
     private lateinit var deleteAccountButton: Button
 
     private lateinit var tokenManager: TokenManager
+
+    private var isCurrentPasswordVisible = false
+    private var isNewPasswordVisible = false
+    private var isConfirmPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +42,7 @@ class Settings : AppCompatActivity() {
 
         initializeViews()
         setupClickListeners()
+        setupPasswordToggles()
     }
 
     private fun initializeViews() {
@@ -41,8 +50,40 @@ class Settings : AppCompatActivity() {
         currentPassword = findViewById(R.id.current_password)
         newPassword = findViewById(R.id.new_password)
         confirmPassword = findViewById(R.id.confirm_password)
+        toggleCurrentPassword = findViewById(R.id.toggle_current_password)
+        toggleNewPassword = findViewById(R.id.toggle_new_password)
+        toggleConfirmPassword = findViewById(R.id.toggle_confirm_password)
         changePasswordButton = findViewById(R.id.change_password_button)
         deleteAccountButton = findViewById(R.id.delete_account_button)
+    }
+
+    private fun setupPasswordToggles() {
+        toggleCurrentPassword.setOnClickListener {
+            isCurrentPasswordVisible = !isCurrentPasswordVisible
+            togglePasswordVisibility(currentPassword, toggleCurrentPassword, isCurrentPasswordVisible)
+        }
+
+        toggleNewPassword.setOnClickListener {
+            isNewPasswordVisible = !isNewPasswordVisible
+            togglePasswordVisibility(newPassword, toggleNewPassword, isNewPasswordVisible)
+        }
+
+        toggleConfirmPassword.setOnClickListener {
+            isConfirmPasswordVisible = !isConfirmPasswordVisible
+            togglePasswordVisibility(confirmPassword, toggleConfirmPassword, isConfirmPasswordVisible)
+        }
+    }
+
+    private fun togglePasswordVisibility(editText: EditText, imageView: ImageView, isVisible: Boolean) {
+        if (isVisible) {
+            editText.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            imageView.setImageResource(R.drawable.ic_visibility)
+        } else {
+            editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            imageView.setImageResource(R.drawable.ic_visibility_off)
+        }
+        // Move cursor to end of text
+        editText.setSelection(editText.text.length)
     }
 
     private fun setupClickListeners() {
@@ -193,4 +234,3 @@ class Settings : AppCompatActivity() {
         }
     }
 }
-
