@@ -190,14 +190,17 @@ exports.getChatMessages = async (req, res) => {
     }
 
     // Get messages
+    const limitValue = parseInt(limit) || 50;
+    const offsetValue = parseInt(offset) || 0;
+
     const [messages] = await pool.execute(
       `SELECT m.*, u.full_name as sender_name, u.profile_pic as sender_profile_pic
        FROM messages m
        LEFT JOIN users u ON m.sender_id = u.id
        WHERE m.chat_id = ?
        ORDER BY m.created_at DESC
-       LIMIT ? OFFSET ?`,
-      [chatId, parseInt(limit), parseInt(offset)]
+       LIMIT ${limitValue} OFFSET ${offsetValue}`,
+      [chatId]
     );
 
     const formattedMessages = messages.map((msg) => formatMessage(msg));
