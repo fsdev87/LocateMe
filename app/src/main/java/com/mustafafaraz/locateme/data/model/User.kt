@@ -31,3 +31,12 @@ data class UserStats(
     @SerializedName("success_rate")
     val successRate: Float
 )
+
+data class UpdateProfileRequest(
+    val fullName: String,
+    val studentId: String,
+    val batch: String,
+    val department: String,
+    val section: String,
+    val profilePic: String? = null // base64 encoded image (optional, only if changed)
+)

@@ -127,12 +127,37 @@ Update user profile (with optional profile picture)
 ```json
 {
   "fullName": "John Updated",
+  "studentId": "2023-CS-001",
   "batch": "2024",
+  "department": "Computer Science",
+  "section": "A",
   "profilePic": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
 }
 ```
 
-**Note:** `profilePic` is optional and should be a base64 encoded image string (with or without data URI prefix)
+**Important Notes:**
+
+- All fields are optional - only include fields you want to update
+- `profilePic` can be:
+  - **New image**: Base64 encoded string (with or without data URI prefix) - will upload new image
+  - **Existing image**: Path starting with `uploads/` (e.g., `"uploads/profiles/pic.jpg"`) - keeps existing image unchanged
+  - **Omit**: Don't include `profilePic` in request - keeps current profile picture
+- Only the authenticated user can update their own profile
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": {
+    "id": 1,
+    "full_name": "John Updated",
+    "profile_pic": "https://server.com/uploads/profiles/pic.jpg",
+    "stats": { ... }
+  }
+}
+```
 
 ### PUT `/users/change-password` 🔒
 
@@ -290,14 +315,20 @@ Update item (only owner can update)
 ```
 
 **Important Notes:**
-- If `itemImages` is provided, it will **completely replace** all existing images
-- To keep existing images, don't include `itemImages` in the request
-- To remove all images, send `itemImages: []`
+
+- All fields are optional - only include fields you want to update
+- `itemImages` behavior:
+  - **Array with new base64 images**: Replaces all existing images with new ones
+  - **Array with existing paths** (e.g., `["uploads/items/img1.jpg", "uploads/items/img2.jpg"]`): Keeps those specific images
+  - **Mixed array**: Can mix existing paths (starting with `uploads/`) and new base64 images - existing paths are kept, base64 strings are converted
+  - **Empty array** `[]`: Removes all images
+  - **Omit field**: Don't include `itemImages` in request - keeps all existing images unchanged
 - Max 5 images allowed
 - Only the item owner can update their item
 - Returns updated item with full image URLs
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -316,6 +347,7 @@ Update item (only owner can update)
 Delete item (soft delete - only owner can delete)
 
 **Response:**
+
 ```json
 {
   "success": true,

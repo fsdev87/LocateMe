@@ -19,6 +19,12 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<ApiResponse<User>>
 
+    @PUT("api/users/profile")
+    suspend fun updateProfile(
+        @Header("Authorization") token: String,
+        @Body request: UpdateProfileRequest
+    ): Response<ApiResponse<User>>
+
     // Item Endpoints
     @POST("api/items")
     suspend fun createItem(

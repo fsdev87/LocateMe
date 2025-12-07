@@ -46,6 +46,12 @@ class Profile : AppCompatActivity() {
         setupClickListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Reload profile when returning from EditProfile activity
+        loadProfileData()
+    }
+
     private fun initializeViews() {
         profileAvatar = findViewById(R.id.profile_avatar)
         profileName = findViewById(R.id.profile_name)

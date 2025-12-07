@@ -47,6 +47,12 @@ class MyItems : AppCompatActivity() {
         loadMyItems()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Reload items when returning from EditItem activity
+        loadMyItems()
+    }
+
     private fun initializeViews() {
         tabActive = findViewById(R.id.tab_active)
         tabResolved = findViewById(R.id.tab_resolved)

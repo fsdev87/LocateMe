@@ -128,10 +128,34 @@ exports.updateProfile = async (req, res) => {
       [userId]
     );
 
+    // Get user statistics
+    const [stats] = await pool.execute(
+      `SELECT 
+        COUNT(*) as total_items,
+        SUM(CASE WHEN status = 'RESOLVED' THEN 1 ELSE 0 END) as resolved_items
+       FROM items 
+       WHERE user_id = ? AND deleted_at IS NULL`,
+      [userId]
+    );
+
+    const totalItems = stats[0].total_items || 0;
+    const resolvedItems = stats[0].resolved_items || 0;
+    const successRate =
+      totalItems > 0 ? ((resolvedItems / totalItems) * 100).toFixed(2) : 0;
+
     const user = updatedUsers[0];
     if (user.profile_pic) {
       user.profile_pic = `${process.env.SERVER_URL}/${user.profile_pic}`;
     }
+
+    // Add statistics to user object
+    user.stats = {
+      total_items: totalItems,
+      resolved_items: resolvedItems,
+      success_rate: parseFloat(successRate),
+    };
+
+    console.log("[updateProfile] Profile updated successfully");
 
     res.status(200).json({
       success: true,

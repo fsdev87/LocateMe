@@ -134,13 +134,25 @@ const processProfilePic = async (req, res, next) => {
     console.log("[processProfilePic] Has profilePic:", !!req.body.profilePic);
 
     if (req.body.profilePic) {
-      const filePath = await saveBase64Image(
-        req.body.profilePic,
-        "profiles",
-        "profilePic"
-      );
-      console.log("[processProfilePic] Saved to:", filePath);
-      req.savedProfilePic = filePath;
+      // Check if this is an existing file path or new base64 image
+      if (req.body.profilePic.startsWith("uploads/")) {
+        // Existing image - keep the path as-is
+        console.log(
+          "[processProfilePic] Keeping existing image:",
+          req.body.profilePic
+        );
+        req.savedProfilePic = req.body.profilePic;
+      } else {
+        // New base64 image - decode and save
+        console.log("[processProfilePic] Saving new base64 image");
+        const filePath = await saveBase64Image(
+          req.body.profilePic,
+          "profiles",
+          "profilePic"
+        );
+        console.log("[processProfilePic] Saved to:", filePath);
+        req.savedProfilePic = filePath;
+      }
     }
     next();
   } catch (error) {
@@ -188,7 +200,9 @@ const processItemImages = async (req, res, next) => {
         // Check if this is an existing file path or new base64 image
         if (imageData.startsWith("uploads/")) {
           // Existing image - keep the path as-is
-          console.log(`[processItemImages] Keeping existing image: ${imageData}`);
+          console.log(
+            `[processItemImages] Keeping existing image: ${imageData}`
+          );
           savedPaths.push(imageData);
         } else {
           // New base64 image - decode and save
