@@ -283,12 +283,16 @@ exports.deleteAccount = async (req, res) => {
   try {
     console.log("\n=== DELETE ACCOUNT REQUEST ===");
     console.log("[deleteAccount] User ID:", req.userId);
+    console.log("[deleteAccount] Request body:", req.body);
+    console.log("[deleteAccount] Body keys:", Object.keys(req.body || {}));
+    console.log("[deleteAccount] Password provided:", !!req.body?.password);
 
     const userId = req.userId;
-    const { password } = req.body;
+    const password = req.body?.password;
 
     // Verify password before deletion
     if (!password) {
+      console.log("[deleteAccount] No password provided");
       return res.status(400).json({
         success: false,
         message: "Password is required to delete account",
@@ -320,47 +324,41 @@ exports.deleteAccount = async (req, res) => {
 
     console.log("[deleteAccount] Starting account deletion process...");
 
-    // Soft delete all user's items
-    await pool.execute(
-      "UPDATE items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
-      [userId]
-    );
-    console.log("[deleteAccount] User items deleted");
+    // Hard delete all notifications for this user (no deleted_at column)
+    await pool.execute("DELETE FROM notifications WHERE user_id = ?", [userId]);
+    console.log("[deleteAccount] Notifications deleted");
 
-    // Soft delete all saved items by this user
+    // Hard delete all messages sent or received by this user (no deleted_at column)
     await pool.execute(
-      "UPDATE saved_items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
-      [userId]
-    );
-    console.log("[deleteAccount] Saved items deleted");
-
-    // Soft delete all chats where user is a participant
-    await pool.execute(
-      "UPDATE chats SET deleted_at = CURRENT_TIMESTAMP WHERE (user1_id = ? OR user2_id = ?) AND deleted_at IS NULL",
-      [userId, userId]
-    );
-    console.log("[deleteAccount] Chats deleted");
-
-    // Soft delete all messages sent or received by this user
-    await pool.execute(
-      "UPDATE messages SET deleted_at = CURRENT_TIMESTAMP WHERE (sender_id = ? OR receiver_id = ?) AND deleted_at IS NULL",
+      "DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?",
       [userId, userId]
     );
     console.log("[deleteAccount] Messages deleted");
 
-    // Soft delete all notifications for this user
+    // Hard delete all saved items by this user (no deleted_at column)
+    await pool.execute("DELETE FROM saved_items WHERE user_id = ?", [userId]);
+    console.log("[deleteAccount] Saved items deleted");
+
+    // Hard delete all chats where user is a participant (no deleted_at column)
+    await pool.execute("DELETE FROM chats WHERE user1_id = ? OR user2_id = ?", [
+      userId,
+      userId,
+    ]);
+    console.log("[deleteAccount] Chats deleted");
+
+    // Soft delete all user's items (has deleted_at column)
     await pool.execute(
-      "UPDATE notifications SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
+      "UPDATE items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
       [userId]
     );
-    console.log("[deleteAccount] Notifications deleted");
+    console.log("[deleteAccount] User items soft deleted");
 
-    // Finally, soft delete the user account
+    // Finally, soft delete the user account (has deleted_at column)
     await pool.execute(
       "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
       [userId]
     );
-    console.log("[deleteAccount] User account deleted");
+    console.log("[deleteAccount] User account soft deleted");
 
     console.log(
       "[deleteAccount] Account and all related data deleted successfully"

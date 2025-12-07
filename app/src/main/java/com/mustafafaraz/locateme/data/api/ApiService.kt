@@ -31,9 +31,10 @@ interface ApiService {
         @Body request: ChangePasswordRequest
     ): Response<ApiResponse<Unit>>
 
-    @DELETE("api/users/account")
+    @HTTP(method = "DELETE", path = "api/users/account", hasBody = true)
     suspend fun deleteAccount(
-        @Header("Authorization") token: String
+        @Header("Authorization") token: String,
+        @Body request: DeleteAccountRequest
     ): Response<ApiResponse<Unit>>
 
     // Item Endpoints

@@ -206,16 +206,16 @@ Delete account (soft delete - requires password confirmation)
 
 **Important:**
 
-- This is a soft delete (sets `deleted_at` timestamp)
 - **Deletes ALL user-related data:**
-  - User account
-  - All items posted by the user
-  - All saved items by the user
-  - All chats where user is a participant
-  - All messages sent or received by the user
-  - All notifications for the user
-- User cannot login after account deletion
+  - **User account** - Soft deleted (can be recovered)
+  - **All items posted by the user** - Soft deleted (can be recovered)
+  - **All saved items by the user** - Permanently deleted
+  - **All chats where user is a participant** - Permanently deleted
+  - **All messages sent or received by the user** - Permanently deleted
+  - **All notifications for the user** - Permanently deleted
+- User cannot login after account deletion (deleted_at is set)
 - After successful deletion, Android app should clear session/token and redirect to login
+- Soft deleted data (user account and items) can potentially be recovered by admin
 
 ### GET `/users/:id` 🔒
 

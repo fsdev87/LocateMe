@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+
+        <EditText
+            android:id="@+id/delete_password_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter your password"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:textColorHint="@android:color/darker_gray"
+            android:background="@drawable/field_text_box"
+            android:inputType="textPassword"
+            android:padding="12dp"
+            android:paddingEnd="48dp"/>
+
+        <ImageView
+            android:id="@+id/toggle_delete_password"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/ic_visibility_off"
+            android:contentDescription="Toggle password visibility"
+            android:clickable="true"
+            android:focusable="true"/>
+
+    </RelativeLayout>
+
+</LinearLayout>
+

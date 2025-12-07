@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.data.model.ChangePasswordRequest
+import com.mustafafaraz.locateme.data.model.DeleteAccountRequest
 import com.mustafafaraz.locateme.utils.TokenManager
 import kotlinx.coroutines.launch
 
@@ -181,17 +182,42 @@ class Settings : AppCompatActivity() {
     }
 
     private fun showDeleteAccountConfirmation() {
+        // Create a custom dialog with password input
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm_delete, null)
+        val passwordInput = dialogView.findViewById<EditText>(R.id.delete_password_input)
+        val togglePassword = dialogView.findViewById<ImageView>(R.id.toggle_delete_password)
+
+        var isPasswordVisible = false
+
+        togglePassword.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            if (isPasswordVisible) {
+                passwordInput.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                togglePassword.setImageResource(R.drawable.ic_visibility)
+            } else {
+                passwordInput.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                togglePassword.setImageResource(R.drawable.ic_visibility_off)
+            }
+            passwordInput.setSelection(passwordInput.text.length)
+        }
+
         AlertDialog.Builder(this)
             .setTitle("Delete Account")
-            .setMessage("Are you absolutely sure you want to delete your account? This action cannot be undone. All your items and data will be permanently deleted.")
+            .setMessage("Are you absolutely sure you want to delete your account? This action cannot be undone. All your items and data will be permanently deleted.\n\nPlease enter your password to confirm:")
+            .setView(dialogView)
             .setPositiveButton("Delete") { _, _ ->
-                handleDeleteAccount()
+                val password = passwordInput.text.toString().trim()
+                if (password.isEmpty()) {
+                    Toast.makeText(this, "Password is required to delete account", Toast.LENGTH_SHORT).show()
+                } else {
+                    handleDeleteAccount(password)
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun handleDeleteAccount() {
+    private fun handleDeleteAccount(password: String) {
         lifecycleScope.launch {
             try {
                 deleteAccountButton.isEnabled = false
@@ -205,7 +231,8 @@ class Settings : AppCompatActivity() {
                 }
 
                 val authHeader = "Bearer $token"
-                val response = RetrofitClient.apiService.deleteAccount(authHeader)
+                val request = DeleteAccountRequest(password = password)
+                val response = RetrofitClient.apiService.deleteAccount(authHeader, request)
 
                 deleteAccountButton.isEnabled = true
                 deleteAccountButton.text = "Delete Account"
@@ -222,7 +249,8 @@ class Settings : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    Toast.makeText(this@Settings, "Failed to delete account", Toast.LENGTH_SHORT).show()
+                    val errorMsg = response.body()?.message ?: "Failed to delete account"
+                    Toast.makeText(this@Settings, errorMsg, Toast.LENGTH_LONG).show()
                     Log.e("Settings", "Error: ${response.code()} - ${response.message()}")
                 }
             } catch (e: Exception) {
