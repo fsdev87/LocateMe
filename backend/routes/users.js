@@ -17,6 +17,9 @@ router.put("/profile", processProfilePic, userController.updateProfile);
 // Change password
 router.put("/change-password", userController.changePassword);
 
+// Delete account
+router.delete("/account", userController.deleteAccount);
+
 // Get user by ID
 router.get("/:id", userController.getUserById);
 

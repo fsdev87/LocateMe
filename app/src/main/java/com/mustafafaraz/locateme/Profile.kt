@@ -150,7 +150,8 @@ class Profile : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.quick_settings).setOnClickListener {
-            Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, Settings::class.java)
+            startActivity(intent)
         }
 
         findViewById<LinearLayout>(R.id.sign_out_button).setOnClickListener {

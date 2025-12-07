@@ -26,6 +26,9 @@
         </service>
 
         <activity
+            android:name=".Settings"
+            android:exported="false" />
+        <activity
             android:name=".EditItem"
             android:exported="false" />
         <activity

@@ -161,7 +161,7 @@ Update user profile (with optional profile picture)
 
 ### PUT `/users/change-password` 🔒
 
-Change password
+Change password (requires current password for security)
 
 **Body:**
 
@@ -171,6 +171,45 @@ Change password
   "newPassword": "new456"
 }
 ```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Password changed successfully"
+}
+```
+
+**Note:** The Android app should validate that "new password" and "confirm new password" match on the frontend before sending the request.
+
+### DELETE `/users/account` 🔒
+
+Delete account (soft delete - requires password confirmation)
+
+**Body:**
+
+```json
+{
+  "password": "userPassword123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Account deleted successfully"
+}
+```
+
+**Important:**
+
+- This is a soft delete (sets `deleted_at` timestamp)
+- All user's items are also soft deleted
+- User cannot login after account deletion
+- After successful deletion, Android app should clear session/token and redirect to login
 
 ### GET `/users/:id` 🔒
 

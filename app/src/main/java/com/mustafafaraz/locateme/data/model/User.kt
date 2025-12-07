@@ -40,3 +40,8 @@ data class UpdateProfileRequest(
     val section: String,
     val profilePic: String? = null // base64 encoded image (optional, only if changed)
 )
+
+data class ChangePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String
+)

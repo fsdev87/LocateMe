@@ -175,6 +175,9 @@ exports.updateProfile = async (req, res) => {
 // Change password
 exports.changePassword = async (req, res) => {
   try {
+    console.log("\n=== CHANGE PASSWORD REQUEST ===");
+    console.log("[changePassword] User ID:", req.userId);
+
     const userId = req.userId;
     const { currentPassword, newPassword } = req.body;
 
@@ -220,12 +223,15 @@ exports.changePassword = async (req, res) => {
       userId,
     ]);
 
+    console.log("[changePassword] Password changed successfully");
+
     res.status(200).json({
       success: true,
       message: "Password changed successfully",
     });
   } catch (error) {
-    console.error("Change password error:", error);
+    console.error("\n=== CHANGE PASSWORD ERROR ===");
+    console.error("[changePassword] Error:", error.message);
     res.status(500).json({
       success: false,
       message: "Error changing password",
@@ -267,6 +273,75 @@ exports.getUserById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching user",
+      error: error.message,
+    });
+  }
+};
+
+// Delete account (soft delete)
+exports.deleteAccount = async (req, res) => {
+  try {
+    console.log("\n=== DELETE ACCOUNT REQUEST ===");
+    console.log("[deleteAccount] User ID:", req.userId);
+
+    const userId = req.userId;
+    const { password } = req.body;
+
+    // Verify password before deletion
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Password is required to delete account",
+      });
+    }
+
+    // Get user with password
+    const [users] = await pool.execute(
+      "SELECT password FROM users WHERE id = ?",
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, users[0].password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect password",
+      });
+    }
+
+    // Soft delete user account
+    await pool.execute(
+      "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [userId]
+    );
+
+    // Also soft delete all user's items
+    await pool.execute(
+      "UPDATE items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ?",
+      [userId]
+    );
+
+    console.log("[deleteAccount] Account deleted successfully");
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    console.error("\n=== DELETE ACCOUNT ERROR ===");
+    console.error("[deleteAccount] Error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting account",
       error: error.message,
     });
   }

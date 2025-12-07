@@ -25,6 +25,17 @@ interface ApiService {
         @Body request: UpdateProfileRequest
     ): Response<ApiResponse<User>>
 
+    @PUT("api/users/change-password")
+    suspend fun changePassword(
+        @Header("Authorization") token: String,
+        @Body request: ChangePasswordRequest
+    ): Response<ApiResponse<Unit>>
+
+    @DELETE("api/users/account")
+    suspend fun deleteAccount(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<Unit>>
+
     // Item Endpoints
     @POST("api/items")
     suspend fun createItem(
