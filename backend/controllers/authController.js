@@ -167,3 +167,27 @@ exports.updateFcmToken = async (req, res) => {
     });
   }
 };
+
+// Logout - Clear FCM token
+exports.logout = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    // Clear FCM token from database
+    await pool.execute("UPDATE users SET fcm_token = NULL WHERE id = ?", [
+      userId,
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error logging out",
+      error: error.message,
+    });
+  }
+};

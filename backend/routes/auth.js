@@ -10,5 +10,6 @@ router.post("/login", authController.login);
 
 // Protected routes
 router.put("/fcm-token", authMiddleware, authController.updateFcmToken);
+router.post("/logout", authMiddleware, authController.logout);
 
 module.exports = router;

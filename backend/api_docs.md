@@ -79,6 +79,42 @@ Update FCM token for push notifications
 }
 ```
 
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "FCM token updated successfully"
+}
+```
+
+**Note:** Call this after login to register device for push notifications. Call again if FCM token is refreshed.
+
+### POST `/auth/logout` 🔒
+
+Logout user and clear FCM token
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+**Important:**
+
+- Clears FCM token from database (stops push notifications)
+- Android app should also:
+  - Clear local auth token
+  - Clear FCM token from SharedPreferences
+  - Navigate to login screen
+- After logout, user will NOT receive push notifications
+- FCM token will be regenerated and sent on next login
+
 ---
 
 ## 👤 User Routes
