@@ -2,14 +2,21 @@ package com.mustafafaraz.locateme
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.widget.LinearLayout
+import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.mustafafaraz.locateme.adapter.ItemAdapter
+import com.mustafafaraz.locateme.data.api.RetrofitClient
+import com.mustafafaraz.locateme.utils.TokenManager
+import kotlinx.coroutines.launch
 
 class Home : AppCompatActivity() {
 
@@ -26,14 +33,43 @@ class Home : AppCompatActivity() {
     private lateinit var chipClothing: TextView
     private lateinit var chipOther: TextView
 
+    // RecyclerView
+    private lateinit var itemsRecyclerView: RecyclerView
+    private lateinit var itemAdapter: ItemAdapter
+    private lateinit var progressBar: ProgressBar
+    private lateinit var emptyView: TextView
+    private lateinit var searchInput: EditText
+
+    // TokenManager
+    private lateinit var tokenManager: TokenManager
+
+    // Current filters
+    private var currentCategory: String? = null // null means "All Categories"
+    private var currentType: String? = null // null means "All Items"
+    private var currentSearch: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
+        tokenManager = TokenManager(this)
+
+        initializeViews()
         initializeTabs()
         initializeCategoryChips()
+        setupRecyclerView()
         setupBottomNavigation()
-        setupItemClickListeners()
+        setupSearch()
+
+        // Load initial data
+        loadItems()
+    }
+
+    private fun initializeViews() {
+        itemsRecyclerView = findViewById(R.id.items_recycler_view)
+        progressBar = findViewById(R.id.progress_bar)
+        emptyView = findViewById(R.id.empty_view)
+        searchInput = findViewById(R.id.search_input)
     }
 
     private fun initializeTabs() {
@@ -45,14 +81,20 @@ class Home : AppCompatActivity() {
         // Set click listeners for tabs
         tabAllItems.setOnClickListener {
             selectTab(0)
+            currentType = null
+            loadItems()
         }
 
         tabLost.setOnClickListener {
             selectTab(1)
+            currentType = "LOST"
+            loadItems()
         }
 
         tabFound.setOnClickListener {
             selectTab(2)
+            currentType = "FOUND"
+            loadItems()
         }
 
         // Wait for layout to be ready, then position indicator
@@ -70,15 +112,35 @@ class Home : AppCompatActivity() {
         chipOther = findViewById(R.id.chip_other)
 
         // Set click listeners
-        chipAll.setOnClickListener { selectCategory(chipAll) }
-        chipElectronics.setOnClickListener { selectCategory(chipElectronics) }
-        chipBags.setOnClickListener { selectCategory(chipBags) }
-        chipKeys.setOnClickListener { selectCategory(chipKeys) }
-        chipClothing.setOnClickListener { selectCategory(chipClothing) }
-        chipOther.setOnClickListener { selectCategory(chipOther) }
+        chipAll.setOnClickListener {
+            selectCategory(chipAll, null)
+        }
+        chipElectronics.setOnClickListener {
+            selectCategory(chipElectronics, "ELECTRONICS")
+        }
+        chipBags.setOnClickListener {
+            selectCategory(chipBags, "BAGS")
+        }
+        chipKeys.setOnClickListener {
+            selectCategory(chipKeys, "KEYS")
+        }
+        chipClothing.setOnClickListener {
+            selectCategory(chipClothing, "CLOTHING")
+        }
+        chipOther.setOnClickListener {
+            selectCategory(chipOther, "OTHER")
+        }
     }
 
-    private fun selectCategory(selectedChip: TextView) {
+    private fun setupRecyclerView() {
+        itemAdapter = ItemAdapter(this, mutableListOf())
+        itemsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@Home)
+            adapter = itemAdapter
+        }
+    }
+
+    private fun selectCategory(selectedChip: TextView, category: String?) {
         // Reset all chips to unselected state
         val chips = listOf(chipAll, chipElectronics, chipBags, chipKeys, chipClothing, chipOther)
 
@@ -93,7 +155,9 @@ class Home : AppCompatActivity() {
         selectedChip.setTextColor(ContextCompat.getColor(this, R.color.white))
         selectedChip.setTypeface(null, android.graphics.Typeface.BOLD)
 
-        // TODO: Filter items based on selected category
+        // Update current category and reload items
+        currentCategory = category
+        loadItems()
     }
 
     private fun selectTab(position: Int) {
@@ -119,8 +183,6 @@ class Home : AppCompatActivity() {
 
         // Animate indicator to the selected tab
         animateIndicator(selectedTab)
-
-        // TODO: Filter items based on selected tab
     }
 
     private fun animateIndicator(selectedTab: TextView) {
@@ -136,6 +198,67 @@ class Home : AppCompatActivity() {
             .x(newX.toFloat())
             .setDuration(200)
             .start()
+    }
+
+    private fun setupSearch() {
+        // You can implement search with a TextWatcher if needed
+        // For now, search on enter or search button click
+    }
+
+    private fun loadItems() {
+        lifecycleScope.launch {
+            try {
+                // Show loading
+                progressBar.visibility = View.VISIBLE
+                emptyView.visibility = View.GONE
+                itemsRecyclerView.visibility = View.GONE
+
+                // Get token
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) {
+                    Toast.makeText(this@Home, "Please login to view items", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val authHeader = "Bearer $token"
+
+                Log.d("Home", "Loading items: category=$currentCategory, type=$currentType")
+
+                // Make API call with filters
+                val response = RetrofitClient.apiService.getItems(
+                    token = authHeader,
+                    type = currentType,
+                    category = currentCategory,
+                    search = currentSearch
+                )
+
+                // Hide loading
+                progressBar.visibility = View.GONE
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val items = response.body()?.data ?: emptyList()
+
+                    Log.d("Home", "Received ${items.size} items")
+
+                    if (items.isEmpty()) {
+                        emptyView.visibility = View.VISIBLE
+                        itemsRecyclerView.visibility = View.GONE
+                    } else {
+                        emptyView.visibility = View.GONE
+                        itemsRecyclerView.visibility = View.VISIBLE
+                        itemAdapter.updateItems(items)
+                    }
+                } else {
+                    Toast.makeText(this@Home, "Failed to load items", Toast.LENGTH_SHORT).show()
+                    emptyView.visibility = View.VISIBLE
+                }
+            } catch (e: Exception) {
+                Log.e("Home", "Error loading items", e)
+                progressBar.visibility = View.GONE
+                emptyView.visibility = View.VISIBLE
+                Toast.makeText(this@Home, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun setupBottomNavigation() {
@@ -159,38 +282,6 @@ class Home : AppCompatActivity() {
 
         findViewById<View>(R.id.chat_icon).setOnClickListener {
             val intent = Intent(this, ChatList::class.java)
-            startActivity(intent)
-        }
-    }
-
-    private fun setupItemClickListeners() {
-        // Item 1: FOUND item - Dark Chocolate Cake
-        findViewById<LinearLayout>(R.id.item_1_found).setOnClickListener {
-            val intent = Intent(this, ItemDetails::class.java).apply {
-                putExtra("item_title", "Dark Chocolate Cake")
-                putExtra("item_description", "Found a chocolate cake in the library. Contact me asap.")
-                putExtra("item_badge", "FOUND")
-                putExtra("location", "Library - 3rd floor")
-                putExtra("time", "1 hour ago")
-                putExtra("person_name", "Abigail")
-                putExtra("contact_email", "abigail@example.com")
-                putExtra("contact_phone", "+1234567890")
-            }
-            startActivity(intent)
-        }
-
-        // Item 2: LOST item - Dark Chocolate Cake
-        findViewById<LinearLayout>(R.id.item_2_lost).setOnClickListener {
-            val intent = Intent(this, ItemDetails::class.java).apply {
-                putExtra("item_title", "Dark Chocolate Cake")
-                putExtra("item_description", "Lost my cake in the library. Please find it.")
-                putExtra("item_badge", "LOST")
-                putExtra("location", "Library - 3rd floor")
-                putExtra("time", "2 hours ago")
-                putExtra("person_name", "John A")
-                putExtra("contact_email", "john@example.com")
-                putExtra("contact_phone", "+1987654321")
-            }
             startActivity(intent)
         }
     }

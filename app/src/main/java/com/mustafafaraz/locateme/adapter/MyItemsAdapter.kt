@@ -10,9 +10,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.mustafafaraz.locateme.EditItem
-import com.mustafafaraz.locateme.Item
 import com.mustafafaraz.locateme.ItemDetails
 import com.mustafafaraz.locateme.R
+import com.mustafafaraz.locateme.data.model.Item
 
 class MyItemsAdapter(
     private val context: Context,
@@ -63,12 +63,7 @@ class MyItemsAdapter(
 
             itemContainer.setOnClickListener {
                 val intent = Intent(context, ItemDetails::class.java).apply {
-                    putExtra("item_title", myItem.title)
-                    putExtra("item_description", myItem.description)
-                    putExtra("item_badge", myItem.type)
-                    putExtra("location", myItem.location)
-                    putExtra("time", myItem.createdAt)
-                    putExtra("person_name", "You")
+                    putExtra("item_id", myItem.id)
                 }
                 context.startActivity(intent)
             }

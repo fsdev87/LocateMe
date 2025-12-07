@@ -11,15 +11,6 @@
             </PendingDiffInfo>
           </value>
         </entry>
-        <entry key="$PROJECT_DIR$/app/src/main/java/com/mustafafaraz/locateme/data/model/Item.kt">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/app/src/main/java/com/mustafafaraz/locateme/data/model/Item.kt" />
-              <option name="originalContent" value="package com.mustafafaraz.locateme.data.model&#10;&#10;data class Item(&#10;    val id: Int,&#10;    val title: String,&#10;    val description: String,&#10;    val imageUrls: List&lt;String&gt;,&#10;    val category: String,&#10;    val location: String,&#10;    val type: String, // LOST or FOUND&#10;    val status: String, // ACTIVE, RESOLVED, EXPIRED&#10;    val userId: Int,&#10;    val userName: String,&#10;    val userEmail: String,&#10;    val userProfilePic: String?,&#10;    val createdAt: String,&#10;    val updatedAt: String&#10;)&#10;&#10;data class CreateItemRequest(&#10;    val title: String,&#10;    val description: String,&#10;    val category: String,&#10;    val location: String,&#10;    val type: String, // LOST or FOUND&#10;    val images: List&lt;String&gt;? = null // base64 encoded images (no data URI prefix)&#10;)" />
-              <option name="updatedContent" value="package com.mustafafaraz.locateme.data.model&#13;&#10;&#13;&#10;data class Item(&#13;&#10;    val id: Int,&#13;&#10;    val title: String,&#13;&#10;    val description: String,&#13;&#10;    val imageUrls: List&lt;String&gt;,&#13;&#10;    val category: String,&#13;&#10;    val location: String,&#13;&#10;    val type: String, // LOST or FOUND&#13;&#10;    val status: String, // ACTIVE, RESOLVED, EXPIRED&#13;&#10;    val userId: Int,&#13;&#10;    val userName: String,&#13;&#10;    val userEmail: String,&#13;&#10;    val userProfilePic: String?,&#13;&#10;    val createdAt: String,&#13;&#10;    val updatedAt: String&#13;&#10;)&#13;&#10;&#13;&#10;data class CreateItemRequest(&#13;&#10;    val title: String,&#13;&#10;    val description: String,&#13;&#10;    val category: String,&#13;&#10;    val location: String,&#13;&#10;    val type: String, // LOST or FOUND&#13;&#10;    val itemImages: List&lt;String&gt;? = null // base64 encoded images (no data URI prefix)&#13;&#10;)" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
       </map>
     </option>
   </component>

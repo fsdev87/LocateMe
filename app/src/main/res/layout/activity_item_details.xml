@@ -71,6 +71,15 @@
         android:background="@android:color/darker_gray"
         android:alpha="0.2"/>
 
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="50dp"
+        android:visibility="gone"/>
+
     <!-- Main Content ScrollView -->
     <ScrollView
         android:layout_width="match_parent"
@@ -96,7 +105,15 @@
                 android:scaleType="centerCrop"
                 android:background="@drawable/item_image_background"
                 android:contentDescription="Item Image"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Image Gallery (Horizontal ScrollView) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/images_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/>
 
             <!-- Lost/Found Badge -->
             <TextView
@@ -621,4 +638,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

@@ -1,7 +1,6 @@
 package com.mustafafaraz.locateme.data.api
 
 import com.mustafafaraz.locateme.data.model.*
-import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -33,5 +32,18 @@ interface ApiService {
         @Query("type") type: String? = null,
         @Query("category") category: String? = null,
         @Query("search") search: String? = null
+    ): Response<ApiResponse<List<Item>>>
+
+    @GET("api/items/{id}")
+    suspend fun getItemById(
+        @Header("Authorization") token: String,
+        @Path("id") itemId: Int
+    ): Response<ApiResponse<Item>>
+
+    @GET("api/items/my-items")
+    suspend fun getMyItems(
+        @Header("Authorization") token: String,
+        @Query("type") type: String? = null,
+        @Query("status") status: String? = null
     ): Response<ApiResponse<List<Item>>>
 }
