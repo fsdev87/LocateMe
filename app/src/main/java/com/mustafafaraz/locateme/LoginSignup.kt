@@ -3,6 +3,7 @@ package com.mustafafaraz.locateme
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -15,7 +16,9 @@ import androidx.lifecycle.lifecycleScope
 import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.data.model.LoginRequest
 import com.mustafafaraz.locateme.data.model.SignupRequest
+import com.mustafafaraz.locateme.data.model.UpdateFcmTokenRequest
 import com.mustafafaraz.locateme.utils.TokenManager
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 
 class LoginSignup : AppCompatActivity() {
@@ -220,6 +223,9 @@ class LoginSignup : AppCompatActivity() {
                             userEmail = authData.user.email
                         )
 
+                        // Get FCM token and send to backend
+                        sendFcmTokenToBackend()
+
                         Toast.makeText(
                             this@LoginSignup,
                             "Login successful! Welcome ${authData.user.fullName}",
@@ -334,6 +340,9 @@ class LoginSignup : AppCompatActivity() {
                             userEmail = authData.user.email
                         )
 
+                        // Get FCM token and send to backend
+                        sendFcmTokenToBackend()
+
                         Toast.makeText(
                             this@LoginSignup,
                             "Account created successfully! Welcome ${authData.user.fullName}",
@@ -361,6 +370,36 @@ class LoginSignup : AppCompatActivity() {
                 // Re-enable button
                 actionButton.isEnabled = true
                 actionButton.text = "Create Account"
+            }
+        }
+    }
+
+    private fun sendFcmTokenToBackend() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val fcmToken = task.result
+                Log.d("LoginSignup", "FCM Token: $fcmToken")
+
+                lifecycleScope.launch {
+                    try {
+                        val token = tokenManager.getToken()
+                        if (!token.isNullOrEmpty()) {
+                            val authHeader = "Bearer $token"
+                            val request = UpdateFcmTokenRequest(fcmToken)
+                            val response = RetrofitClient.apiService.updateFcmToken(authHeader, request)
+
+                            if (response.isSuccessful) {
+                                Log.d("LoginSignup", "✅ FCM token sent to backend")
+                            } else {
+                                Log.e("LoginSignup", "❌ Failed to send FCM token: ${response.code()}")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("LoginSignup", "❌ Error sending FCM token", e)
+                    }
+                }
+            } else {
+                Log.e("LoginSignup", "❌ Failed to get FCM token", task.exception)
             }
         }
     }

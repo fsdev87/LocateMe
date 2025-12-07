@@ -146,4 +146,11 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("chatId") chatId: Int
     ): Response<ApiResponse<Unit>>
+
+    // FCM Token Endpoint
+    @PUT("api/auth/fcm-token")
+    suspend fun updateFcmToken(
+        @Header("Authorization") token: String,
+        @Body request: UpdateFcmTokenRequest
+    ): Response<ApiResponse<Unit>>
 }

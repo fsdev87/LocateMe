@@ -24,6 +24,7 @@ import com.mustafafaraz.locateme.data.api.RetrofitClient
 import com.mustafafaraz.locateme.data.model.ChatMessage
 import com.mustafafaraz.locateme.data.model.SendMessageRequest
 import com.mustafafaraz.locateme.utils.TokenManager
+import com.mustafafaraz.locateme.services.MyFirebaseMessagingService
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
@@ -442,8 +443,22 @@ class ChatScreen : AppCompatActivity() {
         return Base64.encodeToString(byteArray, Base64.NO_WRAP)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Suppress notifications for this chat when user is in the chat screen
+        MyFirebaseMessagingService.currentChatId = chatId
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Re-enable notifications when user leaves the chat screen
+        MyFirebaseMessagingService.currentChatId = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        // Clear the current chat ID
+        MyFirebaseMessagingService.currentChatId = null
     }
 }
