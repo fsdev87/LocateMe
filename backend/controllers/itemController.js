@@ -185,8 +185,14 @@ exports.getAllItems = async (req, res) => {
       params.push(searchPattern, searchPattern, searchPattern);
     }
 
-    query += " ORDER BY i.created_at DESC LIMIT ? OFFSET ?";
-    params.push(parseInt(limit), parseInt(offset));
+    // Convert limit and offset to integers
+    const limitInt = parseInt(limit) || 50;
+    const offsetInt = parseInt(offset) || 0;
+
+    query += ` ORDER BY i.created_at DESC LIMIT ${limitInt} OFFSET ${offsetInt}`;
+
+    console.log("[getAllItems] Final query:", query);
+    console.log("[getAllItems] Params:", params);
 
     const [items] = await pool.execute(query, params);
 
