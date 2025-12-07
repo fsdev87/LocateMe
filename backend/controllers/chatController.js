@@ -111,9 +111,49 @@ exports.createChatFromItem = async (req, res) => {
       });
     }
 
-    // Use existing createOrGetChat logic
-    req.body.otherUserId = itemOwnerId;
-    return exports.createOrGetChat(req, res);
+    // Check if chat already exists (in either direction)
+    const [existingChats] = await pool.execute(
+      `SELECT * FROM chats 
+       WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)`,
+      [userId, itemOwnerId, itemOwnerId, userId]
+    );
+
+    let chatId;
+
+    if (existingChats.length > 0) {
+      // Chat exists
+      chatId = existingChats[0].id;
+    } else {
+      // Create new chat
+      const [result] = await pool.execute(
+        "INSERT INTO chats (user1_id, user2_id) VALUES (?, ?)",
+        [userId, itemOwnerId]
+      );
+      chatId = result.insertId;
+    }
+
+    // Get chat with other user's info
+    const [chats] = await pool.execute(
+      `SELECT c.*, 
+              u.id as other_user_id, u.full_name as other_user_name, 
+              u.email as other_user_email, u.profile_pic as user_profile_pic
+       FROM chats c
+       JOIN users u ON (
+         CASE 
+           WHEN c.user1_id = ? THEN c.user2_id 
+           ELSE c.user1_id 
+         END = u.id
+       )
+       WHERE c.id = ?`,
+      [userId, chatId]
+    );
+
+    const chat = formatChat(chats[0]);
+
+    res.status(200).json({
+      success: true,
+      data: chat,
+    });
   } catch (error) {
     console.error("Create chat from item error:", error);
     res.status(500).json({
