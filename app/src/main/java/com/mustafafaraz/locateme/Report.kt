@@ -277,8 +277,13 @@ class Report : AppCompatActivity() {
                 }
 
                 // Debug logs: token presence and image count
-                Log.d("Report", "Has token: ${!token.isNullOrEmpty()}, tokenPreview=${token?.take(10)?.replace(".*", "***")}")
+                Log.d("Report", "Has token: ${!token.isNullOrEmpty()}, tokenPreview=${token.take(10).replace(".*", "***")}")
                 Log.d("Report", "Preparing to upload ${base64Images.size} base64-encoded image(s)")
+
+                // Log each image's first 20 characters to verify they're separate strings
+                base64Images.forEachIndexed { index, img ->
+                    Log.d("Report", "Image $index preview: ${img.take(20)}... (length: ${img.length})")
+                }
 
                 // Build request with base64 images
                 val request = CreateItemRequest(
@@ -287,8 +292,13 @@ class Report : AppCompatActivity() {
                     category = category,
                     location = location,
                     type = itemType,
-                    itemImages = base64Images
+                    itemImages = if (base64Images.isNotEmpty()) base64Images else null
                 )
+
+                // Log the request structure
+                Log.d("Report", "Request itemImages type: ${request.itemImages?.javaClass?.simpleName}")
+                Log.d("Report", "Request itemImages is array/list: ${request.itemImages is List<*>}")
+                Log.d("Report", "Request itemImages count: ${request.itemImages?.size}")
 
                 // Make API call
                 val response = RetrofitClient.apiService.createItem(

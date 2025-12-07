@@ -1,5 +1,6 @@
 package com.mustafafaraz.locateme.data.api
 
+import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -24,12 +25,17 @@ object RetrofitClient {
         .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
+    // Configure Gson to properly serialize arrays and handle nulls
+    private val gson = GsonBuilder()
+        .serializeNulls()  // Include null values in JSON
+        .create()
+
     // Retrofit instance
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 

@@ -4,8 +4,18 @@ const { pool } = require("../config/db");
 // Helper function to format item with full image URLs
 const formatItem = (item) => {
   if (item.image_urls) {
-    const urls = JSON.parse(item.image_urls);
-    item.image_urls = urls.map((url) => `${process.env.SERVER_URL}/${url}`);
+    console.log('[formatItem] Raw image_urls from DB:', item.image_urls);
+    console.log('[formatItem] Type:', typeof item.image_urls);
+    
+    try {
+      const urls = JSON.parse(item.image_urls);
+      console.log('[formatItem] Parsed URLs:', urls);
+      item.image_urls = urls.map((url) => `${process.env.SERVER_URL}/${url}`);
+    } catch (error) {
+      console.error('[formatItem] JSON parse error:', error.message);
+      console.error('[formatItem] Invalid data:', item.image_urls);
+      item.image_urls = [];
+    }
   } else {
     item.image_urls = [];
   }
@@ -21,6 +31,15 @@ const formatItem = (item) => {
 // Create item (lost or found)
 exports.createItem = async (req, res) => {
   try {
+    console.log('\n=== CREATE ITEM REQUEST ===');
+    console.log('[createItem] User ID:', req.userId);
+    console.log('[createItem] Body keys:', Object.keys(req.body));
+    console.log('[createItem] Title:', req.body.title);
+    console.log('[createItem] Category:', req.body.category);
+    console.log('[createItem] Type:', req.body.type);
+    console.log('[createItem] Has itemImages:', !!req.body.itemImages);
+    console.log('[createItem] Saved item images:', req.savedItemImages);
+    
     const userId = req.userId;
     const { title, description, category, location, type, expiresAt } =
       req.body;
@@ -54,9 +73,15 @@ exports.createItem = async (req, res) => {
     let imageUrls = [];
     if (req.savedItemImages && req.savedItemImages.length > 0) {
       imageUrls = req.savedItemImages;
+      console.log('[createItem] Image URLs to save:', imageUrls);
+    } else {
+      console.log('[createItem] No images to save');
     }
 
     // Insert item
+    const imageUrlsJson = JSON.stringify(imageUrls);
+    console.log('[createItem] JSON stringified image URLs:', imageUrlsJson);
+    
     const [result] = await pool.execute(
       `INSERT INTO items (user_id, title, description, image_urls, category, location, type, expires_at) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -64,13 +89,15 @@ exports.createItem = async (req, res) => {
         userId,
         title,
         description,
-        JSON.stringify(imageUrls),
+        imageUrlsJson,
         category,
         location,
         type,
         expiresAt || null,
       ]
     );
+    
+    console.log('[createItem] Item created with ID:', result.insertId);
 
     // Get created item with user info
     const [items] = await pool.execute(
@@ -89,7 +116,12 @@ exports.createItem = async (req, res) => {
       data: item,
     });
   } catch (error) {
-    console.error("Create item error:", error);
+    console.error('\n=== CREATE ITEM ERROR ===');
+    console.error('[createItem] Error name:', error.name);
+    console.error('[createItem] Error message:', error.message);
+    console.error('[createItem] Error stack:', error.stack);
+    console.error('[createItem] Request body:', JSON.stringify(req.body, null, 2));
+    
     res.status(500).json({
       success: false,
       message: "Error creating item",

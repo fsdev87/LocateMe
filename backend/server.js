@@ -69,7 +69,15 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error("Error:", err);
+  console.error('\n=== UNHANDLED ERROR ===');
+  console.error('Error name:', err.name);
+  console.error('Error message:', err.message);
+  console.error('Error stack:', err.stack);
+  console.error('Request URL:', req.originalUrl);
+  console.error('Request method:', req.method);
+  console.error('Request body:', JSON.stringify(req.body, null, 2));
+  console.error('======================\n');
+  
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal server error",
