@@ -324,41 +324,40 @@ exports.deleteAccount = async (req, res) => {
 
     console.log("[deleteAccount] Starting account deletion process...");
 
-    // Hard delete all notifications for this user (no deleted_at column)
+    // Delete in reverse order of dependencies (least dependent first)
+
+    // 1. Delete notifications (depends on user only)
     await pool.execute("DELETE FROM notifications WHERE user_id = ?", [userId]);
     console.log("[deleteAccount] Notifications deleted");
 
-    // Hard delete all messages sent or received by this user (no deleted_at column)
+    // 2. Delete messages (depends on chats and users)
     await pool.execute(
       "DELETE FROM messages WHERE sender_id = ? OR receiver_id = ?",
       [userId, userId]
     );
     console.log("[deleteAccount] Messages deleted");
 
-    // Hard delete all saved items by this user (no deleted_at column)
+    // 3. Delete saved items (depends on users and items)
     await pool.execute("DELETE FROM saved_items WHERE user_id = ?", [userId]);
     console.log("[deleteAccount] Saved items deleted");
 
-    // Hard delete all chats where user is a participant (no deleted_at column)
+    // 4. Delete chats (depends on users)
     await pool.execute("DELETE FROM chats WHERE user1_id = ? OR user2_id = ?", [
       userId,
       userId,
     ]);
     console.log("[deleteAccount] Chats deleted");
 
-    // Soft delete all user's items (has deleted_at column)
+    // 5. Soft delete all user's items (has deleted_at column)
     await pool.execute(
       "UPDATE items SET deleted_at = CURRENT_TIMESTAMP WHERE user_id = ? AND deleted_at IS NULL",
       [userId]
     );
     console.log("[deleteAccount] User items soft deleted");
 
-    // Finally, soft delete the user account (has deleted_at column)
-    await pool.execute(
-      "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
-      [userId]
-    );
-    console.log("[deleteAccount] User account soft deleted");
+    // 6. Finally, hard delete the user account (no deleted_at column in schema)
+    await pool.execute("DELETE FROM users WHERE id = ?", [userId]);
+    console.log("[deleteAccount] User account permanently deleted");
 
     console.log(
       "[deleteAccount] Account and all related data deleted successfully"
