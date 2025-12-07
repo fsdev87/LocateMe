@@ -16,8 +16,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mustafafaraz.locateme.adapter.ItemAdapter
-import com.mustafafaraz.locateme.data.api.RetrofitClient
+import com.mustafafaraz.locateme.data.repository.ItemRepository
 import com.mustafafaraz.locateme.utils.TokenManager
+import com.mustafafaraz.locateme.utils.NetworkUtils
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -44,8 +45,9 @@ class Home : AppCompatActivity() {
     private lateinit var emptyView: TextView
     private lateinit var searchInput: EditText
 
-    // TokenManager
+    // TokenManager and Repository
     private lateinit var tokenManager: TokenManager
+    private lateinit var itemRepository: ItemRepository
 
     // Current filters
     private var currentCategory: String? = null // null means "All Categories"
@@ -60,6 +62,7 @@ class Home : AppCompatActivity() {
         setContentView(R.layout.activity_home)
 
         tokenManager = TokenManager(this)
+        itemRepository = ItemRepository(this)
 
         initializeViews()
         initializeTabs()
@@ -68,14 +71,16 @@ class Home : AppCompatActivity() {
         setupBottomNavigation()
         setupSearch()
 
-        // Load initial data
-        loadItems()
+        // Load items from cache first, then sync
+        loadItemsFromCache()
+        syncItems()
     }
 
     override fun onResume() {
         super.onResume()
         // Reload items when returning from ItemDetails to update save status
-        loadItems()
+        loadItemsFromCache()
+        syncItems()
     }
 
     private fun initializeViews() {
@@ -95,19 +100,19 @@ class Home : AppCompatActivity() {
         tabAllItems.setOnClickListener {
             selectTab(0)
             currentType = null
-            loadItems()
+            syncItems()
         }
 
         tabLost.setOnClickListener {
             selectTab(1)
             currentType = "LOST"
-            loadItems()
+            syncItems()
         }
 
         tabFound.setOnClickListener {
             selectTab(2)
             currentType = "FOUND"
-            loadItems()
+            syncItems()
         }
 
         // Wait for layout to be ready, then position indicator
@@ -170,7 +175,7 @@ class Home : AppCompatActivity() {
 
         // Update current category and reload items
         currentCategory = category
-        loadItems()
+        syncItems()
     }
 
     private fun selectTab(position: Int) {
@@ -215,84 +220,107 @@ class Home : AppCompatActivity() {
 
     private fun setupSearch() {
         searchInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Not needed
-            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Cancel previous search job
                 searchJob?.cancel()
-
-                // Create new search job with debounce
                 searchJob = lifecycleScope.launch {
-                    delay(500) // Wait 500ms after user stops typing
-
+                    delay(500)
                     val query = s.toString().trim()
                     currentSearch = if (query.isEmpty()) null else query
-
                     Log.d("Home", "Search query: $currentSearch")
-                    loadItems()
+                    loadItemsFromCache()
                 }
             }
 
-            override fun afterTextChanged(s: Editable?) {
-                // Not needed
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
     }
 
-    private fun loadItems() {
+    private fun loadItemsFromCache() {
         lifecycleScope.launch {
             try {
-                // Show loading
-                progressBar.visibility = View.VISIBLE
-                emptyView.visibility = View.GONE
-                itemsRecyclerView.visibility = View.GONE
-
-                // Get token
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) {
-                    Toast.makeText(this@Home, "Please login to view items", Toast.LENGTH_SHORT).show()
-                    return@launch
+                // Show loading only if no cached data yet
+                if (itemAdapter.itemCount == 0) {
+                    progressBar.visibility = View.VISIBLE
+                    emptyView.visibility = View.GONE
+                    itemsRecyclerView.visibility = View.GONE
                 }
 
-                val authHeader = "Bearer $token"
+                // Load from cache (instant)
+                itemRepository.getAllItems().collect { cachedItems ->
+                    Log.d("Home", "Loaded ${cachedItems.size} items from cache")
 
-                Log.d("Home", "Loading items: category=$currentCategory, type=$currentType")
+                    // Apply filters locally
+                    val filteredItems = cachedItems.filter { item ->
+                        // Filter by type (LOST/FOUND)
+                        val typeMatch = currentType == null || item.type == currentType
 
-                // Make API call with filters
-                val response = RetrofitClient.apiService.getItems(
-                    token = authHeader,
+                        // Filter by category
+                        val categoryMatch = currentCategory == null || item.category == currentCategory
+
+                        // Filter by search query
+                        val searchMatch = currentSearch == null ||
+                                item.title.contains(currentSearch!!, ignoreCase = true) ||
+                                item.description.contains(currentSearch!!, ignoreCase = true) ||
+                                item.location.contains(currentSearch!!, ignoreCase = true)
+
+                        typeMatch && categoryMatch && searchMatch
+                    }
+
+                    progressBar.visibility = View.GONE
+
+                    if (filteredItems.isEmpty()) {
+                        emptyView.visibility = View.VISIBLE
+                        itemsRecyclerView.visibility = View.GONE
+
+                        // Show different message if offline
+                        if (!NetworkUtils.isOnline(this@Home)) {
+                            emptyView.text = "No cached items. Connect to internet to load."
+                        } else {
+                            emptyView.text = "No items found"
+                        }
+                    } else {
+                        emptyView.visibility = View.GONE
+                        itemsRecyclerView.visibility = View.VISIBLE
+                        itemAdapter.updateItems(filteredItems)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Home", "Error loading from cache", e)
+                progressBar.visibility = View.GONE
+                emptyView.visibility = View.VISIBLE
+                emptyView.text = "Error loading items"
+            }
+        }
+    }
+
+    private fun syncItems() {
+        lifecycleScope.launch {
+            try {
+                // Sync from server in background
+                val result = itemRepository.syncItems(
                     type = currentType,
                     category = currentCategory,
                     search = currentSearch
                 )
 
-                // Hide loading
-                progressBar.visibility = View.GONE
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    val items = response.body()?.data ?: emptyList()
-
-                    Log.d("Home", "Received ${items.size} items")
-
-                    if (items.isEmpty()) {
-                        emptyView.visibility = View.VISIBLE
-                        itemsRecyclerView.visibility = View.GONE
+                result.onSuccess {
+                    Log.d("Home", "✅ Items synced from server")
+                    // Cache updates automatically trigger Flow update
+                }.onFailure { error ->
+                    if (error.message?.contains("No internet") == true) {
+                        Log.d("Home", "📴 Offline mode - showing cached data")
+                        // Show subtle offline indicator
+                        if (itemAdapter.itemCount > 0) {
+                            Toast.makeText(this@Home, "Offline mode - showing cached items", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
-                        emptyView.visibility = View.GONE
-                        itemsRecyclerView.visibility = View.VISIBLE
-                        itemAdapter.updateItems(items)
+                        Log.e("Home", "Error syncing items: ${error.message}")
                     }
-                } else {
-                    Toast.makeText(this@Home, "Failed to load items", Toast.LENGTH_SHORT).show()
-                    emptyView.visibility = View.VISIBLE
                 }
             } catch (e: Exception) {
-                Log.e("Home", "Error loading items", e)
-                progressBar.visibility = View.GONE
-                emptyView.visibility = View.VISIBLE
-                Toast.makeText(this@Home, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("Home", "Sync error", e)
             }
         }
     }

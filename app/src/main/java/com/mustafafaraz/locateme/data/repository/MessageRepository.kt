@@ -219,6 +219,37 @@ class MessageRepository(private val context: Context) {
     }
 
     /**
+     * Delete message from server and local cache
+     */
+    suspend fun deleteMessage(messageId: Int): Result<Unit> {
+        return try {
+            if (!NetworkUtils.isOnline(context)) {
+                return Result.failure(Exception("No internet connection. Cannot delete message."))
+            }
+
+            val token = tokenManager.getToken()
+            if (token.isNullOrEmpty()) {
+                return Result.failure(Exception("Not authenticated"))
+            }
+
+            val authHeader = "Bearer $token"
+            val response = RetrofitClient.apiService.deleteMessage(authHeader, messageId)
+
+            if (response.isSuccessful && response.body()?.success == true) {
+                // Delete from local cache
+                messageDao.deleteMessage(messageId)
+                Log.d(TAG, "✅ Message deleted from server and cache: $messageId")
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception(response.body()?.message ?: "Failed to delete message"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting message", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Clear message cache
      */
     suspend fun clearCache(chatId: Int? = null) {
@@ -247,4 +278,3 @@ private fun SendMessageRequest.copy(localId: String) = SendMessageRequestWithLoc
     messageImage = messageImage,
     localId = localId
 )
-

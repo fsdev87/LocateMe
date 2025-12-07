@@ -345,18 +345,13 @@ class ChatScreen : AppCompatActivity() {
     private fun deleteMessage(message: ChatMessage) {
         lifecycleScope.launch {
             try {
-                val token = tokenManager.getToken()
-                if (token.isNullOrEmpty()) return@launch
+                val result = messageRepository.deleteMessage(message.id)
 
-                val authHeader = "Bearer $token"
-                val response = RetrofitClient.apiService.deleteMessage(authHeader, message.id)
-
-                if (response.isSuccessful && response.body()?.success == true) {
-                    adapter.removeMessage(message.id)
+                result.onSuccess {
+                    // Message will be automatically removed from UI via Flow
                     Toast.makeText(this@ChatScreen, "Message deleted", Toast.LENGTH_SHORT).show()
-                } else {
-                    val errorMsg = response.body()?.message ?: "Failed to delete message"
-                    Toast.makeText(this@ChatScreen, errorMsg, Toast.LENGTH_SHORT).show()
+                }.onFailure { error ->
+                    Toast.makeText(this@ChatScreen, error.message ?: "Failed to delete message", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e("ChatScreen", "Error deleting message", e)
