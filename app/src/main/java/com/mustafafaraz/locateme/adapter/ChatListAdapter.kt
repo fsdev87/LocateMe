@@ -1,7 +1,6 @@
 package com.mustafafaraz.locateme.adapter
 
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,17 +8,18 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.mustafafaraz.locateme.ChatScreen
+import com.bumptech.glide.Glide
 import com.mustafafaraz.locateme.R
 import com.mustafafaraz.locateme.data.model.Chat
+import com.mustafafaraz.locateme.utils.TimeFormatter
 
 class ChatListAdapter(
     private val context: Context,
-    private val chats: List<Chat>
+    private val chats: List<Chat>,
+    private val onChatClick: (Chat) -> Unit
 ) : RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder>() {
 
-    inner class ChatListViewHolder(itemView: View) :
-        RecyclerView.ViewHolder(itemView) {
+    inner class ChatListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val userAvatar: ImageView = itemView.findViewById(R.id.user_avatar)
         private val userName: TextView = itemView.findViewById(R.id.user_name)
@@ -29,35 +29,46 @@ class ChatListAdapter(
         private val chatContainer: LinearLayout = itemView.findViewById(R.id.chat_container)
 
         fun bind(chat: Chat) {
-            userAvatar.setImageResource(chat.userAvatar)
-            userName.text = chat.userName
-            lastMessage.text = chat.lastMessage
-            timestamp.text = chat.timestamp
-
-            // Show unread badge if there are unread messages
-            if (chat.unreadCount > 0) {
-                unreadBadge.visibility = View.VISIBLE
-                unreadBadge.text = chat.unreadCount.toString()
+            // Load user profile picture or default avatar
+            if (!chat.userProfilePic.isNullOrEmpty()) {
+                Glide.with(context)
+                    .load(chat.userProfilePic)
+                    .placeholder(R.drawable.ic_person)
+                    .error(R.drawable.ic_person)
+                    .circleCrop()
+                    .into(userAvatar)
             } else {
-                unreadBadge.visibility = View.GONE
+                userAvatar.setImageResource(R.drawable.ic_person)
             }
 
-            // Click listener to open ChatScreen
-            chatContainer.setOnClickListener {
-                val intent = Intent(context, ChatScreen::class.java).apply {
-                    putExtra("user_name", chat.userName)
-                    putExtra("user_email", chat.userEmail)
-                    putExtra("chat_id", chat.id)
+            userName.text = chat.otherUserName
+
+            // Display last message or default text
+            lastMessage.text = when {
+                chat.lastMessage != null -> {
+                    if (chat.lastMessageType == "IMAGE") "📷 Image" else chat.lastMessage
                 }
-                context.startActivity(intent)
+                else -> "Start chatting..."
+            }
+
+            // Format timestamp
+            timestamp.text = if (chat.lastMessageTime != null) {
+                TimeFormatter.formatTimeAgo(chat.lastMessageTime)
+            } else {
+                TimeFormatter.formatTimeAgo(chat.createdAt)
+            }
+
+            // Hide unread badge (we can implement unread count later if needed)
+            unreadBadge.visibility = View.GONE
+
+            // Click listener
+            chatContainer.setOnClickListener {
+                onChatClick(chat)
             }
         }
     }
 
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): ChatListViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatListViewHolder {
         val itemView = LayoutInflater.from(context)
             .inflate(R.layout.chat_list_row, parent, false)
         return ChatListViewHolder(itemView)

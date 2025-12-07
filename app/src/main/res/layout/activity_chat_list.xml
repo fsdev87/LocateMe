@@ -56,51 +56,64 @@
         android:background="@android:color/darker_gray"
         android:alpha="0.2"/>
 
-    <!-- Chats RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chats_recyclerview"
+    <!-- Content Container -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scrollbars="vertical"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:clipToPadding="false"/>
+        android:layout_weight="1">
 
-    <!-- Empty State (optional, can be shown when no chats exist) -->
-    <LinearLayout
-        android:id="@+id/empty_state"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone">
+        <!-- Chats RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chats_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"/>
 
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@drawable/ic_message"
-            android:contentDescription="No messages"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView
+        <!-- Loading Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No messages yet"
-            android:textSize="16sp"
-            android:textColor="@color/text_color"
-            android:textStyle="bold"/>
+            android:layout_gravity="center"
+            android:visibility="gone"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start chatting to see conversations here"
-            android:textSize="12sp"
-            android:textColor="@color/text_color"
-            android:layout_marginTop="8dp"/>
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
 
-    </LinearLayout>
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_message"
+                android:contentDescription="No messages"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No messages yet"
+                android:textSize="16sp"
+                android:textColor="@color/text_color"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start chatting to see conversations here"
+                android:textSize="12sp"
+                android:textColor="@color/text_color"
+                android:layout_marginTop="8dp"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </LinearLayout>
-

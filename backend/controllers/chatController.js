@@ -82,6 +82,48 @@ exports.createOrGetChat = async (req, res) => {
   }
 };
 
+// Create or get chat from item (convenience method)
+exports.createChatFromItem = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { itemId } = req.params;
+
+    // Get item owner
+    const [items] = await pool.execute(
+      "SELECT user_id FROM items WHERE id = ? AND deleted_at IS NULL",
+      [itemId]
+    );
+
+    if (items.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    const itemOwnerId = items[0].user_id;
+
+    // Check if user is trying to chat with themselves
+    if (userId === itemOwnerId) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot chat with yourself",
+      });
+    }
+
+    // Use existing createOrGetChat logic
+    req.body.otherUserId = itemOwnerId;
+    return exports.createOrGetChat(req, res);
+  } catch (error) {
+    console.error("Create chat from item error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating chat from item",
+      error: error.message,
+    });
+  }
+};
+
 // Get all user's chats
 exports.getUserChats = async (req, res) => {
   try {

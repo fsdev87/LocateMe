@@ -159,8 +159,7 @@ class ItemDetails : AppCompatActivity() {
     private fun setupActionButtons(item: Item) {
         // Message button
         findViewById<LinearLayout>(R.id.message_button).setOnClickListener {
-            Toast.makeText(this, "Chat feature coming soon", Toast.LENGTH_SHORT).show()
-            // TODO: Navigate to chat with this user
+            openChatWithUser(item)
         }
 
         // Email button
@@ -198,6 +197,14 @@ class ItemDetails : AppCompatActivity() {
         bookmarkButton.setOnClickListener {
             toggleSaveItem(item)
         }
+    }
+
+    private fun openChatWithUser(item: Item) {
+        // Open chat screen with item ID to create or get existing chat
+        val intent = Intent(this, ChatScreen::class.java).apply {
+            putExtra("item_id", item.id)
+        }
+        startActivity(intent)
     }
 
     private fun updateBookmarkIcon(isSaved: Boolean) {

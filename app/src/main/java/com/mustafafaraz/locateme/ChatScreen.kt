@@ -1,46 +1,449 @@
 package com.mustafafaraz.locateme
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.MediaStore
+import android.util.Base64
+import android.util.Log
+import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mustafafaraz.locateme.adapter.ChatMessagesAdapter
+import com.mustafafaraz.locateme.data.api.RetrofitClient
+import com.mustafafaraz.locateme.data.model.ChatMessage
+import com.mustafafaraz.locateme.data.model.SendMessageRequest
+import com.mustafafaraz.locateme.utils.TokenManager
+import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 
 class ChatScreen : AppCompatActivity() {
 
+    private lateinit var tokenManager: TokenManager
     private lateinit var backButton: ImageView
+    private lateinit var userName: TextView
     private lateinit var messagesRecyclerView: RecyclerView
+    private lateinit var messageInput: EditText
+    private lateinit var sendButton: ImageView
+    private lateinit var attachImageButton: ImageView
     private lateinit var adapter: ChatMessagesAdapter
-    private lateinit var messages: MutableList<ChatMessage>
+
+    private var chatId: Int = -1
+    private var otherUserId: Int = -1
+    private var currentUserId: Int = -1
+    private val messages = mutableListOf<ChatMessage>()
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val refreshInterval = 3000L // Refresh every 3 seconds
+    private var isRefreshing = false
+
+    companion object {
+        private const val PICK_IMAGE_REQUEST = 1001
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_screen)
 
-        backButton = findViewById(R.id.back_button)
-        messagesRecyclerView = findViewById(R.id.messages_recyclerview)
+        tokenManager = TokenManager(this)
 
-        backButton.setOnClickListener {
+        // Get current user ID
+        lifecycleScope.launch {
+            val userIdString = tokenManager.getUserId()
+            currentUserId = userIdString?.toIntOrNull() ?: -1
+        }
+
+        initializeViews()
+
+        // Get chat info from intent
+        chatId = intent.getIntExtra("chat_id", -1)
+        val itemId = intent.getIntExtra("item_id", -1)
+
+        if (chatId != -1) {
+            // Existing chat - load messages
+            loadChatDetails()
+            loadMessages()
+        } else if (itemId != -1) {
+            // New chat from item
+            createChatFromItem(itemId)
+        } else {
+            Toast.makeText(this, "Invalid chat", Toast.LENGTH_SHORT).show()
             finish()
         }
 
-        // Initialize sample messages
-        messages = mutableListOf(
-            ChatMessage("Hi, did you find my backpack?", "received", "10:30 AM"),
-            ChatMessage("Yes, I found it near the library!", "sent", "10:32 AM"),
-            ChatMessage("That's great! When can we meet?", "received", "10:35 AM"),
-            ChatMessage("How about at 2 PM near the cafeteria?", "sent", "10:37 AM"),
-            ChatMessage("Perfect! See you then", "received", "10:40 AM")
-        )
+        setupListeners()
+    }
+
+    private fun initializeViews() {
+        backButton = findViewById(R.id.back_button)
+        userName = findViewById(R.id.user_name)
+        messagesRecyclerView = findViewById(R.id.messages_recyclerview)
+        messageInput = findViewById(R.id.message_input)
+        sendButton = findViewById(R.id.send_button)
+        attachImageButton = findViewById(R.id.attach_image_button)
 
         setupRecyclerView()
     }
 
     private fun setupRecyclerView() {
+        adapter = ChatMessagesAdapter(this, messages, currentUserId) { message ->
+            handleMessageLongClick(message)
+        }
         messagesRecyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ChatMessagesAdapter(this, messages)
         messagesRecyclerView.adapter = adapter
     }
-}
 
+    private fun setupListeners() {
+        backButton.setOnClickListener {
+            finish()
+        }
+
+        sendButton.setOnClickListener {
+            sendTextMessage()
+        }
+
+        attachImageButton.setOnClickListener {
+            pickImage()
+        }
+    }
+
+    private fun createChatFromItem(itemId: Int) {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) {
+                    Toast.makeText(this@ChatScreen, "Please login", Toast.LENGTH_SHORT).show()
+                    finish()
+                    return@launch
+                }
+
+                val authHeader = "Bearer $token"
+                val response = RetrofitClient.apiService.createChatFromItem(authHeader, itemId)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val chat = response.body()?.data
+                    chat?.let {
+                        chatId = it.id
+                        otherUserId = it.otherUserId
+                        userName.text = it.otherUserName
+                        loadMessages()
+                        startAutoRefresh()
+                    }
+                } else {
+                    val errorMsg = response.body()?.message ?: "Failed to create chat"
+                    Toast.makeText(this@ChatScreen, errorMsg, Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error creating chat", e)
+                Toast.makeText(this@ChatScreen, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+    }
+
+    private fun loadChatDetails() {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) return@launch
+
+                val authHeader = "Bearer $token"
+                val response = RetrofitClient.apiService.getChatById(authHeader, chatId)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val chat = response.body()?.data
+                    chat?.let {
+                        otherUserId = it.otherUserId
+                        userName.text = it.otherUserName
+                        startAutoRefresh()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error loading chat details", e)
+            }
+        }
+    }
+
+    private fun loadMessages() {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) return@launch
+
+                val authHeader = "Bearer $token"
+                val response = RetrofitClient.apiService.getChatMessages(authHeader, chatId)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val newMessages = response.body()?.data ?: emptyList()
+
+                    if (newMessages.isNotEmpty()) {
+                        adapter.updateMessages(newMessages)
+                        scrollToBottom()
+
+                        // Mark messages as read
+                        markMessagesAsRead()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error loading messages", e)
+            }
+        }
+    }
+
+    private fun sendTextMessage() {
+        val messageText = messageInput.text.toString().trim()
+        if (messageText.isEmpty()) return
+
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) return@launch
+
+                val authHeader = "Bearer $token"
+                val request = SendMessageRequest(
+                    chatId = chatId,
+                    type = "TEXT",
+                    content = messageText
+                )
+
+                val response = RetrofitClient.apiService.sendMessage(authHeader, request)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val sentMessage = response.body()?.data
+                    sentMessage?.let {
+                        adapter.addMessage(it)
+                        scrollToBottom()
+                        messageInput.text.clear()
+                    }
+                } else {
+                    Toast.makeText(this@ChatScreen, "Failed to send message", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error sending message", e)
+                Toast.makeText(this@ChatScreen, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun pickImage() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            val imageUri: Uri? = data.data
+            imageUri?.let {
+                sendImageMessage(it)
+            }
+        }
+    }
+
+    private fun sendImageMessage(imageUri: Uri) {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) return@launch
+
+                // Convert image to base64
+                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
+                val resizedBitmap = resizeBitmap(bitmap, 1024, 1024)
+                val base64Image = bitmapToBase64(resizedBitmap)
+
+                val authHeader = "Bearer $token"
+                val request = SendMessageRequest(
+                    chatId = chatId,
+                    type = "IMAGE",
+                    messageImage = base64Image
+                )
+
+                val response = RetrofitClient.apiService.sendMessage(authHeader, request)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val sentMessage = response.body()?.data
+                    sentMessage?.let {
+                        adapter.addMessage(it)
+                        scrollToBottom()
+                    }
+                } else {
+                    Toast.makeText(this@ChatScreen, "Failed to send image", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error sending image", e)
+                Toast.makeText(this@ChatScreen, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun handleMessageLongClick(message: ChatMessage) {
+        // Check if message is within 5 minutes
+        val messageTime = parseTimestamp(message.createdAt)
+        val currentTime = System.currentTimeMillis()
+        val timeDiff = (currentTime - messageTime) / 1000 / 60 // minutes
+
+        if (timeDiff > 5) {
+            Toast.makeText(this, "Messages can only be deleted within 5 minutes", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Show confirmation dialog
+        AlertDialog.Builder(this)
+            .setTitle("Delete Message")
+            .setMessage("Are you sure you want to delete this message?")
+            .setPositiveButton("Delete") { _, _ ->
+                deleteMessage(message)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteMessage(message: ChatMessage) {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) return@launch
+
+                val authHeader = "Bearer $token"
+                val response = RetrofitClient.apiService.deleteMessage(authHeader, message.id)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    adapter.removeMessage(message.id)
+                    Toast.makeText(this@ChatScreen, "Message deleted", Toast.LENGTH_SHORT).show()
+                } else {
+                    val errorMsg = response.body()?.message ?: "Failed to delete message"
+                    Toast.makeText(this@ChatScreen, errorMsg, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error deleting message", e)
+                Toast.makeText(this@ChatScreen, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun markMessagesAsRead() {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) return@launch
+
+                val authHeader = "Bearer $token"
+                RetrofitClient.apiService.markMessagesAsRead(authHeader, chatId)
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error marking messages as read", e)
+            }
+        }
+    }
+
+    private fun startAutoRefresh() {
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                if (!isRefreshing) {
+                    isRefreshing = true
+                    refreshMessages()
+                }
+                handler.postDelayed(this, refreshInterval)
+            }
+        }, refreshInterval)
+    }
+
+    private fun refreshMessages() {
+        lifecycleScope.launch {
+            try {
+                val token = tokenManager.getToken()
+                if (token.isNullOrEmpty()) {
+                    isRefreshing = false
+                    return@launch
+                }
+
+                val authHeader = "Bearer $token"
+                val response = RetrofitClient.apiService.getChatMessages(authHeader, chatId)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val newMessages = response.body()?.data ?: emptyList()
+
+                    // Only update if there are new messages
+                    if (newMessages.size > messages.size) {
+                        val wasAtBottom = isAtBottom()
+                        adapter.updateMessages(newMessages)
+
+                        if (wasAtBottom) {
+                            scrollToBottom()
+                        }
+
+                        markMessagesAsRead()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ChatScreen", "Error refreshing messages", e)
+            } finally {
+                isRefreshing = false
+            }
+        }
+    }
+
+    private fun scrollToBottom() {
+        if (messages.isNotEmpty()) {
+            messagesRecyclerView.smoothScrollToPosition(messages.size - 1)
+        }
+    }
+
+    private fun isAtBottom(): Boolean {
+        val layoutManager = messagesRecyclerView.layoutManager as LinearLayoutManager
+        val lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
+        return lastVisiblePosition >= messages.size - 1
+    }
+
+    private fun parseTimestamp(timestamp: String): Long {
+        return try {
+            val format = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+            format.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            format.parse(timestamp)?.time ?: System.currentTimeMillis()
+        } catch (e: Exception) {
+            System.currentTimeMillis()
+        }
+    }
+
+    private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+
+        val ratioBitmap = width.toFloat() / height.toFloat()
+        val ratioMax = maxWidth.toFloat() / maxHeight.toFloat()
+
+        var finalWidth = maxWidth
+        var finalHeight = maxHeight
+
+        if (ratioMax > ratioBitmap) {
+            finalWidth = (maxHeight.toFloat() * ratioBitmap).toInt()
+        } else {
+            finalHeight = (maxWidth.toFloat() / ratioBitmap).toInt()
+        }
+
+        return Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true)
+    }
+
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.NO_WRAP)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
+    }
+}

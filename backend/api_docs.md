@@ -524,7 +524,7 @@ Get all items you have saved
 
 ### GET `/chats` 🔒
 
-Get all user's chats
+Get all user's chats with last message preview
 
 **Response:**
 
@@ -534,21 +534,29 @@ Get all user's chats
   "data": [
     {
       "id": 1,
+      "user1_id": 1,
+      "user2_id": 2,
       "other_user_id": 2,
       "other_user_name": "Jane Doe",
-      "user_profile_pic": "http://...",
+      "other_user_email": "jane@example.com",
+      "user_profile_pic": "https://server.com/uploads/profiles/jane.jpg",
       "last_message": "Hey, is this still available?",
       "last_message_type": "TEXT",
-      "last_message_time": "2025-09-20T10:30:00Z",
-      ...
+      "last_message_time": "2025-12-07T10:30:00.000Z",
+      "created_at": "2025-12-07T09:00:00.000Z",
+      "last_message_at": "2025-12-07T10:30:00.000Z"
     }
   ]
 }
 ```
 
+**Note:** Chats are sorted by most recent message time
+
 ### POST `/chats` 🔒
 
-Create or get existing chat
+Create or get existing chat with another user
+
+**Behavior:** If chat already exists between users, returns existing chat. Otherwise creates new chat.
 
 **Body:**
 
@@ -558,13 +566,76 @@ Create or get existing chat
 }
 ```
 
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "user1_id": 1,
+    "user2_id": 2,
+    "other_user_id": 2,
+    "other_user_name": "Jane Doe",
+    "other_user_email": "jane@example.com",
+    "user_profile_pic": "https://server.com/uploads/profiles/jane.jpg",
+    "created_at": "2025-12-07T09:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+
+- 400: Cannot create chat with yourself
+- 404: Other user not found
+
+### POST `/chats/from-item/:itemId` 🔒
+
+Create or get chat with item owner (convenience endpoint for messaging from item details)
+
+**Behavior:** Automatically creates/gets chat with the user who posted the item
+
+**Response:** Same as `POST /chats`
+
+**Errors:**
+
+- 400: Cannot chat with yourself (if you're the item owner)
+- 404: Item not found
+
+**Usage:** Call this when user clicks "Message" button on an item details page
+
 ### GET `/chats/:id` 🔒
 
-Get chat by ID
+Get chat details by ID
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "other_user_id": 2,
+    "other_user_name": "Jane Doe",
+    "other_user_email": "jane@example.com",
+    "user_profile_pic": "https://server.com/uploads/profiles/jane.jpg",
+    "created_at": "2025-12-07T09:00:00.000Z"
+  }
+}
+```
 
 ### DELETE `/chats/:id` 🔒
 
-Delete chat
+Delete chat and all associated messages
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Chat deleted successfully"
+}
+```
 
 ---
 
@@ -572,16 +643,65 @@ Delete chat
 
 ### GET `/messages/chat/:chatId` 🔒
 
-Get messages for a chat
+Get all messages for a specific chat
 
 **Query Parameters:**
 
-- `limit` - Default: 50
-- `offset` - Default: 0
+- `limit` - Maximum messages to return (default: 50)
+- `offset` - Number of messages to skip (default: 0)
+
+**Behavior:**
+
+- Messages are returned in chronological order (oldest first)
+- Automatically marks messages as read for the current user
+- Includes sender information with each message
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "chat_id": 1,
+      "sender_id": 2,
+      "receiver_id": 1,
+      "type": "TEXT",
+      "content": "Hey, is this still available?",
+      "media_url": null,
+      "is_read": true,
+      "sender_name": "Jane Doe",
+      "sender_profile_pic": "https://server.com/uploads/profiles/jane.jpg",
+      "created_at": "2025-12-07T10:30:00.000Z"
+    },
+    {
+      "id": 2,
+      "chat_id": 1,
+      "sender_id": 1,
+      "receiver_id": 2,
+      "type": "IMAGE",
+      "content": null,
+      "media_url": "https://server.com/uploads/messages/img-123.jpg",
+      "is_read": false,
+      "sender_name": "John Doe",
+      "sender_profile_pic": "https://server.com/uploads/profiles/john.jpg",
+      "created_at": "2025-12-07T10:31:00.000Z"
+    }
+  ],
+  "pagination": {
+    "limit": 50,
+    "offset": 0,
+    "count": 2
+  }
+}
+```
+
+**Note:** Use `sender_id` to determine if message should be displayed on left (received) or right (sent) side
 
 ### POST `/messages` 🔒
 
-Send message
+Send a message (text or image)
 
 **For TEXT message:** (application/json)
 
@@ -603,15 +723,137 @@ Send message
 }
 ```
 
-**Note:** `messageImage` should be a base64 encoded image string
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Message sent successfully",
+  "data": {
+    "id": 3,
+    "chat_id": 1,
+    "sender_id": 1,
+    "receiver_id": 2,
+    "type": "TEXT",
+    "content": "Hello, is this still available?",
+    "media_url": null,
+    "is_read": false,
+    "sender_name": "John Doe",
+    "sender_profile_pic": "https://server.com/uploads/profiles/john.jpg",
+    "created_at": "2025-12-07T10:35:00.000Z"
+  }
+}
+```
+
+**Notes:**
+
+- `messageImage` should be base64 encoded image string
+- Automatically sends push notification to receiver
+- Updates chat's `last_message_at` timestamp
+- Creates notification in database
+
+**Errors:**
+
+- 400: Missing required fields or invalid type
+- 404: Chat not found or no access
 
 ### PUT `/messages/chat/:chatId/read` 🔒
 
-Mark all messages in chat as read
+Mark all messages in a chat as read
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Messages marked as read"
+}
+```
+
+**Usage:** Call when user opens a chat screen
+
+### GET `/messages/unread-count` 🔒
+
+Get total unread message count across all chats
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "unreadCount": 5
+  }
+}
+```
+
+**Usage:** Display badge on chat/messages icon
+
+---
+
+## 🔄 Real-time Chat Updates
+
+**Note:** The backend does not currently use WebSocket/Socket.io. For real-time chat experience in Android, implement polling:
+
+**Recommended Polling Strategy:**
+
+1. **Active Chat Screen:**
+   - Poll `GET /messages/chat/:chatId` every 2-3 seconds while chat is open
+   - Use offset/limit to fetch only new messages (track last message ID)
+2. **Chat List Screen:**
+   - Poll `GET /chats` every 5-10 seconds to update last messages
+3. **Background Updates:**
+   - Rely on FCM push notifications when app is in background
+   - When notification received, fetch latest messages
+
+**Example Android Implementation:**
+
+```kotlin
+// In ChatActivity
+private val pollInterval = 3000L // 3 seconds
+private val handler = Handler(Looper.getMainLooper())
+
+private val pollRunnable = object : Runnable {
+    override fun run() {
+        fetchNewMessages()
+        handler.postDelayed(this, pollInterval)
+    }
+}
+
+override fun onResume() {
+    super.onResume()
+    handler.post(pollRunnable) // Start polling
+}
+
+override fun onPause() {
+    super.onPause()
+    handler.removeCallbacks(pollRunnable) // Stop polling
+}
+```
 
 ### DELETE `/messages/:id` 🔒
 
-Delete message (sender only)
+Delete a message (sender only, within 5 minutes)
+
+**Restrictions:**
+
+- Only sender can delete their own messages
+- Messages can only be deleted within 5 minutes of sending
+- Requires confirmation in UI (long press)
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Message deleted successfully"
+}
+```
+
+**Errors:**
+
+- 403: Message is older than 5 minutes
+- 404: Message not found or not the sender
 
 ### GET `/messages/unread-count` 🔒
 

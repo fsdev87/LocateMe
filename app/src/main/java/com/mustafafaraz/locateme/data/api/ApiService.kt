@@ -95,4 +95,55 @@ interface ApiService {
     suspend fun getSavedItems(
         @Header("Authorization") token: String
     ): Response<ApiResponse<List<Item>>>
+
+    // Chat Endpoints
+    @GET("api/chats")
+    suspend fun getUserChats(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<List<Chat>>>
+
+    @POST("api/chats")
+    suspend fun createOrGetChat(
+        @Header("Authorization") token: String,
+        @Body request: CreateChatRequest
+    ): Response<ApiResponse<Chat>>
+
+    @POST("api/chats/from-item/{itemId}")
+    suspend fun createChatFromItem(
+        @Header("Authorization") token: String,
+        @Path("itemId") itemId: Int
+    ): Response<ApiResponse<Chat>>
+
+    @GET("api/chats/{id}")
+    suspend fun getChatById(
+        @Header("Authorization") token: String,
+        @Path("id") chatId: Int
+    ): Response<ApiResponse<Chat>>
+
+    // Message Endpoints
+    @GET("api/messages/chat/{chatId}")
+    suspend fun getChatMessages(
+        @Header("Authorization") token: String,
+        @Path("chatId") chatId: Int,
+        @Query("limit") limit: Int? = 50,
+        @Query("offset") offset: Int? = 0
+    ): Response<ApiResponse<List<ChatMessage>>>
+
+    @POST("api/messages")
+    suspend fun sendMessage(
+        @Header("Authorization") token: String,
+        @Body request: SendMessageRequest
+    ): Response<ApiResponse<ChatMessage>>
+
+    @DELETE("api/messages/{id}")
+    suspend fun deleteMessage(
+        @Header("Authorization") token: String,
+        @Path("id") messageId: Int
+    ): Response<ApiResponse<Unit>>
+
+    @PUT("api/messages/chat/{chatId}/read")
+    suspend fun markMessagesAsRead(
+        @Header("Authorization") token: String,
+        @Path("chatId") chatId: Int
+    ): Response<ApiResponse<Unit>>
 }

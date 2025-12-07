@@ -36,24 +36,6 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp"/>
 
-        <!-- Chat Icon -->
-        <ImageView
-            android:id="@+id/chat_icon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_chat"
-            android:contentDescription="Messages"/>
-
-        <!-- Red notification dot -->
-        <View
-            android:id="@+id/notification_dot"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:background="@drawable/notification_dot"
-            android:layout_marginStart="-8dp"
-            android:layout_marginBottom="12dp"
-            android:visibility="gone"/>
-
     </LinearLayout>
 
     <!-- Main Content ScrollView -->

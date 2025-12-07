@@ -41,5 +41,25 @@ object TimeFormatter {
             timestamp.substringBefore("T")
         }
     }
-}
 
+    fun formatTime(timestamp: String): String {
+        return try {
+            // Parse the ISO 8601 timestamp from backend
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            sdf.timeZone = TimeZone.getTimeZone("UTC")
+            val date = sdf.parse(timestamp.substringBefore("."))
+
+            if (date != null) {
+                // Format to readable time (e.g., "10:30 AM")
+                val outputFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                outputFormat.timeZone = TimeZone.getDefault() // Convert to local time
+                outputFormat.format(date)
+            } else {
+                timestamp.substringAfter("T").substringBefore(".")
+            }
+        } catch (e: Exception) {
+            // Fallback: just show the time part
+            timestamp.substringAfter("T").substringBefore(".")
+        }
+    }
+}

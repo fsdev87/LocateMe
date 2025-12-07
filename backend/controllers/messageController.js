@@ -23,7 +23,7 @@ exports.sendMessage = async (req, res) => {
     console.log("[sendMessage] Saved message image:", req.savedMessageImage);
 
     const userId = req.userId;
-    const { chatId, content } = req.body;
+    const { chatId, content, type } = req.body;
 
     // Validation
     if (!chatId || !type) {
@@ -268,6 +268,19 @@ exports.deleteMessage = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Message not found or you do not have permission to delete it",
+      });
+    }
+
+    // Check if message is within 5 minutes of creation
+    const message = messages[0];
+    const messageTime = new Date(message.created_at);
+    const currentTime = new Date();
+    const timeDiff = (currentTime - messageTime) / 1000 / 60; // difference in minutes
+
+    if (timeDiff > 5) {
+      return res.status(403).json({
+        success: false,
+        message: "Messages can only be deleted within 5 minutes of sending",
       });
     }
 
