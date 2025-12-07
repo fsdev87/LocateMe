@@ -60,6 +60,7 @@ class SavedItems : AppCompatActivity() {
             try {
                 progressBar.visibility = View.VISIBLE
                 emptyView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
 
                 val token = tokenManager.getToken()
                 if (token.isNullOrEmpty()) {
@@ -77,10 +78,14 @@ class SavedItems : AppCompatActivity() {
                     val items = response.body()?.data ?: emptyList()
 
                     if (items.isEmpty()) {
+                        // Clear the adapter first
+                        adapter.updateItems(emptyList())
+                        recyclerView.visibility = View.GONE
                         emptyView.visibility = View.VISIBLE
                         emptyView.text = "No saved items yet"
                     } else {
                         emptyView.visibility = View.GONE
+                        recyclerView.visibility = View.VISIBLE
                         adapter.updateItems(items)
                     }
                 } else {
