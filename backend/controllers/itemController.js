@@ -239,6 +239,7 @@ exports.getItemById = async (req, res) => {
 
     const [items] = await pool.execute(
       `SELECT i.*, u.full_name as user_name, u.email as user_email, u.student_id as user_student_id,
+              u.batch as user_batch, u.department as user_department, u.section as user_section,
               u.profile_pic as user_profile_pic
        FROM items i
        LEFT JOIN users u ON i.user_id = u.id

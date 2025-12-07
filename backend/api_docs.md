@@ -184,7 +184,33 @@ Create new item
 
 ### GET `/items/:id` 🔒
 
-Get item by ID
+Get item by ID with detailed user information
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Lost iPhone 13",
+    "description": "Black iPhone 13",
+    "category": "ELECTRONICS",
+    "type": "LOST",
+    "status": "ACTIVE",
+    "location": "Library",
+    "image_urls": ["https://server.com/uploads/items/image1.jpg"],
+    "user_name": "John Doe",
+    "user_email": "john@example.com",
+    "user_student_id": "2021-CS-001",
+    "user_batch": "2021",
+    "user_department": "Computer Science",
+    "user_section": "A",
+    "user_profile_pic": "https://server.com/uploads/profiles/pic.jpg",
+    "created_at": "2025-12-07T10:00:00.000Z"
+  }
+}
+```
 
 ### GET `/items/my-items` 🔒
 
